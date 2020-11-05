@@ -33,18 +33,15 @@ emptyFlag,
 } = require('./common_dataset');
 const {
 createCustomNoti
-} = require('./createNoti');
+} = require('./common_function');
 
 const _id = `seungsoo_ha`;
 const _pw = `S1s1s1s1!`;
-
+const __pw = `S1s1s1s1s1!`;
 const UNREAD = "읽지 않음 ";
 const SEND = "전달 됨 ";
 
 const MAIL_POLLINGTIME = 15*1000//*5 // 5 Minutes
-
-
-
 
 
 
@@ -74,8 +71,6 @@ const check_mailInfo = async(content,browser)=>{
     message format
     '[IMS] No.243229 Action Registered : [NH투자증권] PromanagerOPS 느린 현상 개선 요청 (이슈분리:240190)',
     '[어린이집 공지] 2021년도 Tmax 사랑 어린이집 원아모집 안내',
-    '[IMS] No.243718 Action Modified : [AXA] TextView searchText 기능 변경 요청 건',
-    '[IMS] No.243718 Action Registered & Status Changed : [AXA] TextView searchText 기능 변경 요청 건'
 
     -> mail 마다 어떻게 분류하고 어떻게 처리할것인지 
 
@@ -97,27 +92,27 @@ const check_mailInfo = async(content,browser)=>{
 
     await notiClickedPage.goto('https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=243979');
     await notiClickedPage.type('#id',_id,{delay:20});
-    //await notiClickedPage.type(`#body > form > table > tbody > tr > td > table > tbody > tr:nth-child(2) > td:nth-child(1) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > input[type=password]`,_pw,{delay:20})
-               
-
-
 
     /*
-    const ims_mailPage = await browser.newPage();
-    await ims_mailPage.setViewport(
-        {//set Page viewPort
-        width: 1920,
-        height: 1080,
-        deviceScaleFactor: 1,
-        }    
-    );
+        puppeteer에서 input태그 처리하는 방법 
+        reference : https://github.com/puppeteer/puppeteer/issues/441
 
-    // IMS 메일 올때 IMS 사이트 로그인후 해당 화면에 달린 액션 내용 확인 
-    await mailPage.goto('https://mail.tmax.co.kr/');
-    */
+    */  
+    await notiClickedPage.evaluate(()=>{
+        document.querySelector(`body > form > table > tbody > tr > td > table > tbody > tr:nth-child(2) > td:nth-child(1) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > input[type=password]`)
+            .select();
+    })
+    await notiClickedPage.keyboard.type(__pw);
+
+    
+    await notiClickedPage.evaluate(()=>{
+        document.querySelector(`body > form > table > tbody > tr > td > table > tbody > tr:nth-child(2) > td:nth-child(1) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(3) > input[type=image]`)
+            .click();
+    })
+  
+   
 
 }
-
 
 /**
  * 
@@ -138,7 +133,6 @@ const check_mailInfo = async(content,browser)=>{
  *  
  *  -----------------------------------------------------------------------------------------------------------------------
  */
-
 
 const mailMonitoring = async(page,browser)=>{
 
@@ -172,10 +166,6 @@ const mailMonitoring = async(page,browser)=>{
     let completeNotiRandomId = Math.round(Math.random() * 0xffffff).toString(16); // Notification 별로 unique 한 id값 부여 
 
     if(!unReadList.includes(UNREAD)){
-        /*
-            20.11.05
-            -> 읽지 않은 메일함에서 notification을 생성할때 중복적으로 생성한다 -> 코드 수정 필요 
-        */
 
         let completeOption =  {
             title:`MAIL check Complete!`,
