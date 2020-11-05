@@ -22,6 +22,31 @@ const start_prompt = ()=>{
 
 }
 
+const Date_formatting = ()=>{
+    yymmdd = ()=>{
+        let mm = this.getMonth() +1;
+        let dd = this.getDate();
+
+        return [this.getFullYear(), (mm>9 ? '':'0')+mm, (dd>9?'':'0')+dd].join('');
+
+    }
+    hhmmss = function() {
+        var hh = this.getHours();
+        var mm = this.getMinutes();
+        var ss = this.getSeconds();
+
+        return [(hh>9 ? '' : '0') + hh,
+                (mm>9 ? '' : '0') + mm,
+                (ss>9 ? '' : '0') + ss,
+                            ].join('');
+    };
+    yyyymmddhhmmss = function() {
+        return this.yyyymmdd() + this.hhmmss();
+    };
+}
+
+
 module.exports={
     start_prompt,
+    Date_formatting
 }

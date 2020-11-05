@@ -11,19 +11,29 @@
 /**
  * i.Module Import
  */
+const figlet = require('figlet');
 const notifier = require('node-notifier');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const fs = require('fs');
 const chalk = require('chalk');
 const puppeteer = require('puppeteer');
-const {
-start_prompt
-} = require('./default_setting');
 const commander = require('commander');
 const toast = require('powertoast');
 const path = require('path');
 const _ = require('lodash');
+
+const {
+start_prompt,
+Date_formatting
+} = require('./default_setting');
+const {
+emptyFlag,
+//completeNoti
+} = require('./common_dataset');
+const {
+createCustomNoti
+} = require('./createNoti');
 
 const _id = `seungsoo_ha`;
 const _pw = `S1s1s1s1!`;
@@ -33,13 +43,9 @@ const SEND = "전달 됨 ";
 
 const MAIL_POLLINGTIME = 15*1000//*5 // 5 Minutes
 
-const {
-emptyFlag,
-//completeNoti
-} = require('./common_dataset');
-const {
-makeCustomAlarm
-} = require('./common_function');
+
+
+
 
 
 /**
@@ -118,9 +124,8 @@ const check_mailInfo = async(content,browser)=>{
  *  ----------------------------------------------------------------------------------------------------------------------
  * 
  *  @function mailMonitoring
- *  @param content: 안읽은 메일 알람 notification 클릭시 받아오는 메시지 값 
- *  @param browser: mainRunner에서 생성된 puppeteer browser 객체를 
-                    받아옴.
+ *  @param page: mainRunner에서 생성한 mailPage를 받아온다.
+ *  @param browser: mainRunner에서 생성된 puppeteer browser 객체를 받아옴.
  *  @param 
  *  @param 
 
@@ -157,39 +162,40 @@ const mailMonitoring = async(page,browser)=>{
     console.log(readList);
     console.log(chalk.yellowBright(`--------------------------------------------------  Current Total Mail List  --------------------------------------------------`));
 
-    console.log(chalk.cyanBright(`--------------------------------------------------  Detetct Mail Status List  --------------------------------------------------`));
+    console.log(chalk.cyanBright(`--------------------------------------------------  Detetct Mail Status List  -------------------------------------------------`));
     console.log(unReadList);
-    console.log(chalk.cyanBright(`--------------------------------------------------  Detetct Mail Status List  --------------------------------------------------`));
+    console.log(chalk.cyanBright(`--------------------------------------------------  Detetct Mail Status List  -------------------------------------------------`));
 
 
     //----------------------------------------------------------------------------------------------------------------------
      
+    let completeNotiRandomId = Math.round(Math.random() * 0xffffff).toString(16); // Notification 별로 unique 한 id값 부여 
 
     if(!unReadList.includes(UNREAD)){
         /*
             20.11.05
             -> 읽지 않은 메일함에서 notification을 생성할때 중복적으로 생성한다 -> 코드 수정 필요 
-
-
         */
-        notifier.notify(
-        {
-            title:`Check Complete!`,
+
+        let completeOption =  {
+            title:`MAIL check Complete!`,
             message :'메시지 확인 완료',
             icon: path.join(__dirname,'/res/images/complete.png'),
+            id: completeNotiRandomId,
             sound:true,
             wait : true,        
-        },
-        function(err,response){},
-        // Response is reponse form notification
-        );
-       
-        notifier.on('click',(notifireObj,options)=>{
-                //noti Click시 동작할 콜백 함수 
-               // clickFn();
-        })
-        
+        }
+        let completeNotiClickFn = (notifierObj,options,event)=>{
+            //console.log(notifierObj);
+            console.log(options);
+            console.log(options.id);
+            console.log('completeNotiClickFn 콜백이유 && 다 읽었수~~~~');
+        }
+
+        createCustomNoti(completeOption, true, completeNotiClickFn);
     }
+
+
 
     for(let i = 0 ; i < unReadList.length ; i ++){
         /*
@@ -203,8 +209,37 @@ const mailMonitoring = async(page,browser)=>{
 
         */
        
+        let unReadNotiRandomId = Math.round(Math.random() * 0xffffff).toString(16); // Notification 별로 unique 한 id값 부여 
 
         if(unReadList[i] == '읽지 않음 '){
+
+            let unReadOption =  {
+                title: 'Unread Alarm ',
+                w:true,
+                id : unReadNotiRandomId,
+                message: `${readList[i]}`,
+                icon: path.join(__dirname, '/res/images/bell.png'), // Absolute path (doesn't work on balloons)
+                sound: true, // Only Notification Center or Windows Toasters
+                wait: false // Wait with callback, until user action is taken against notification, does not apply to Windows Toasters as they always wait or notify-send as it does not support the wait option
+            }
+            let unReadNotiClickFn = (notifierObj,options,event)=>{
+            //console.log(notifierObj);
+                console.log(chalk.bgYellowBright('UnRead Mail Clicked '));
+                console.log(options);
+                console.log(options.id);
+                check_mailInfo(options.message,browser);
+            }
+
+            createCustomNoti(unReadOption, true, unReadNotiClickFn);
+
+
+            /*
+
+                20.11.05
+                notifier 객체를 분기처리 안에서 동일한 객체로 선언했기때문에 
+                다수의 notifier가 생성되었고
+                click콜백 내부에서 page객체 생성이 비정상적으로 발생한 문제 해결 
+        
             notifier.notify(
             {
                 title: 'Unread Alarm ',
@@ -226,7 +261,7 @@ const mailMonitoring = async(page,browser)=>{
                
             });
 
-            /*
+           
             window notification 클릭 잡는
             callback이 다수로 불려서 (정확한 원인을 찾지 못함)
 
@@ -234,15 +269,14 @@ const mailMonitoring = async(page,browser)=>{
 
             lodash 패키지 부른 후 click이벤트 콜백을 한번만 수행하게끔 코드 수정함.
 
-            */
             notifier.on('click',_.debounce((notifierObj,options,event)=>{  // Debounce(_.debounce)
                 console.log(chalk.bgYellowBright('UnRead Mail Clicked '));
-                /*
+               
                     읽지 않음 메일의 notification 이 클릭 될때 
                     check_mailInfo 함수를 호출한다.
                     인자로는 notification의 message(readList[i])를 넘겨준다.
                 
-                */
+               
                 check_mailInfo(options.message,browser);
             }));
 
@@ -250,6 +284,7 @@ const mailMonitoring = async(page,browser)=>{
             // Triggers if `wait: true` and notification closes
               
             });
+            */
 
         }       
         if(unReadList[i] == '전달됨 '){
@@ -292,6 +327,22 @@ const mailMonitoring = async(page,browser)=>{
 
 }
 
+/**
+ * 
+ *  ----------------------------------------------------------------------------------------------------------------------
+ * 
+ *  @function mainRunner
+ *  @param 
+
+ *  @description
+ *  <pre>
+ *      i. browser -> puppeteer launch
+ *      ii. page 객체 생성 (mail 화면을 담는 mailPage) -> mail url 접속
+ *      iii.
+ *  </pre>
+ *  
+ *  -----------------------------------------------------------------------------------------------------------------------
+ */
 
 const mainRunner = async()=>{
 
@@ -303,7 +354,7 @@ const mainRunner = async()=>{
 
     console.log(commander.h)
     const browser = await puppeteer.launch({
-        headless: commander.h, 
+        headless: false, 
         args: ['--window-size=1920,1080']
     });
 
@@ -317,39 +368,26 @@ const mainRunner = async()=>{
     );
 
     await mailPage.goto('https://mail.tmax.co.kr/');
-
     await mailPage.type('#rcmloginuser',_id,{delay:20});
     await mailPage.type('#rcmloginpwd',_pw,{delay:20});
 
     await mailPage.$(`#rcmloginsubmit`).then((result)=>{
         result.click();
-    })
-    notifier.notify(
-        {
-            title:`Check Complete!`,
-            msg :'메시지 확인 완료',
-            icon: path.join(__dirname,'/res/images/complete.png'),
-            sound:true,
-            wait : true,        
-        },
-        function(err,response){},
-        // Response is reponse form notification
-        );
-       
-        notifier.on('click',(notifireObj,options)=>{
-                //noti Click시 동작할 콜백 함수 
-               // clickFn();
-        })
-    console.log(chalk.greenBright(`#####        Load Main Mail Message List  ######`));
+    });
+
+    console.log(chalk.greenBright(figlet.textSync(`#####        Load Main Mail Message List  ######`,{widht : 120})));
 
     await mailPage.waitForTimeout(1500);
 
+    let cnt = 0; 
+    let format = Date_formatting(); 
+
 
     while(true){
+        console.log(`[Polling Count : ${cnt++}  `)
+
         await mailMonitoring(mailPage,browser);
-
         await mailPage.waitForTimeout(MAIL_POLLINGTIME);
-
         await mailPage.reload({ waitUntil: ["networkidle0"] });
 
     }
