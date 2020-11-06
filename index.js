@@ -7,7 +7,6 @@
  * License. It is allowed to copy, distribute, transmit and to adapt the work
  */
 
-
 /**
  * i.Module Import
  */
@@ -32,7 +31,8 @@ emptyFlag,
 //completeNoti
 } = require('./common_dataset');
 const {
-createCustomNoti
+createCustomNoti,
+classifyMail
 } = require('./common_function');
 
 const _id = `seungsoo_ha`;
@@ -40,9 +40,9 @@ const _pw = `S1s1s1s1!`;
 const __pw = `S1s1s1s1s1!`;
 const UNREAD = "읽지 않음 ";
 const SEND = "전달 됨 ";
-
-const MAIL_POLLINGTIME = 15*1000//*5 // 5 Minutes
-
+let cnt = 0;
+const MAIL_POLLINGTIME = 30*1000//*5 // 5 Minutes
+let isEnter = false
 
 
 /**
@@ -78,39 +78,68 @@ const check_mailInfo = async(content,browser)=>{
     2. 공지 메일이면 단순 pdf 파일등으로 저장 
     3. etc..
     */
+    
+    console.log(chalk.magentaBright(`[check_mailInfo] : ${content}`));
 
-    console.log(`[check_mailInfo] : ${content}`);
-
-    const notiClickedPage = await browser.newPage();
-    await notiClickedPage.setViewport(
-        {//set Page viewPort
+    let origin_ = content;
+    let splitted = origin_.split(' ');
+    
+    const imsPage = await browser.newPage();
+    await imsPage.setViewport({//set Page viewPort
         width: 1920,
         height: 1080,
         deviceScaleFactor: 1,
-        }    
-    );
+    });
 
-    await notiClickedPage.goto('https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=243979');
-    await notiClickedPage.type('#id',_id,{delay:20});
+    let class_flag = splitted[0]; // IMS
+    let class_flag2 = splitted[1]; // No.123456
+    let _No = class_flag2.split('.')[0];
+    let _imsNum = class_flag2.split('.')[1];
 
-    /*
-        puppeteer에서 input태그 처리하는 방법 
-        reference : https://github.com/puppeteer/puppeteer/issues/441
+    switch(class_flag){
 
-    */  
-    await notiClickedPage.evaluate(()=>{
-        document.querySelector(`body > form > table > tbody > tr > td > table > tbody > tr:nth-child(2) > td:nth-child(1) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > input[type=password]`)
-            .select();
-    })
-    await notiClickedPage.keyboard.type(__pw);
+        case "[IMS]":
+            console.log('[IMS] mail received ...');
+            if(_No == "No"){
+                if(!isEnter){
+                    console.log('*******************************첫클릭***********************************');
+                    await imsPage.goto(`https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=${_imsNum}`);
 
-    
-    await notiClickedPage.evaluate(()=>{
-        document.querySelector(`body > form > table > tbody > tr > td > table > tbody > tr:nth-child(2) > td:nth-child(1) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(3) > input[type=image]`)
-            .click();
-    })
-  
-   
+
+                    await imsPage.type('#id',_id,{delay:20});
+
+                    /*
+                    puppeteer에서 input태그 처리하는 방법 
+                    reference : https://github.com/puppeteer/puppeteer/issues/441
+                    */  
+                    await imsPage.evaluate(()=>{
+                        document.querySelector(`body > form > table > tbody > tr > td > table > tbody > tr:nth-child(2) > td:nth-child(1) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > input[type=password]`)
+                            .select();
+                    })
+        
+                    await imsPage.keyboard.type(__pw);
+
+                    await imsPage.evaluate(()=>{
+                        document.querySelector(`body > form > table > tbody > tr > td > table > tbody > tr:nth-child(2) > td:nth-child(1) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(3) > input[type=image]`)
+                            .click();
+                    })
+
+                }
+                else{
+                    console.log('*******************************첫클릭 XXX***********************************')
+
+                    await imsPage.goto(`https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=${_imsNum}`);
+                }
+               
+                
+            } 
+            break
+        default:
+            console.log(`Unclassified Mail [현재는 IMS 이슈 메일만 분류 되어있음]`);
+    }
+
+
+    isEnter =true
 
 }
 
@@ -213,13 +242,12 @@ const mailMonitoring = async(page,browser)=>{
                 wait: false // Wait with callback, until user action is taken against notification, does not apply to Windows Toasters as they always wait or notify-send as it does not support the wait option
             }
             let unReadNotiClickFn = (notifierObj,options,event)=>{
-            //console.log(notifierObj);
+                //console.log(notifierObj);
                 console.log(chalk.bgYellowBright('UnRead Mail Clicked '));
-                console.log(options);
-                console.log(options.id);
+                //console.log(options);
+                //console.log(options.id);
                 check_mailInfo(options.message,browser);
             }
-
             createCustomNoti(unReadOption, true, unReadNotiClickFn);
 
 
