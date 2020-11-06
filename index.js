@@ -26,6 +26,7 @@ const {
 start_prompt,
 Date_formatting
 } = require('./default_setting');
+
 const {
 emptyFlag,
 //completeNoti
@@ -41,9 +42,8 @@ const __pw = `S1s1s1s1s1!`;
 const UNREAD = "읽지 않음 ";
 const SEND = "전달 됨 ";
 let cnt = 0;
-const MAIL_POLLINGTIME = 30*1000//*5 // 5 Minutes
+const MAIL_POLLINGTIME = 300*1000//*5 // 5 Minutes
 let isEnter = false
-
 
 /**
  * 
@@ -65,7 +65,6 @@ let isEnter = false
  *  
  *  -----------------------------------------------------------------------------------------------------------------------
  */
-
 const check_mailInfo = async(content,browser)=>{
     /*
     message format
@@ -127,18 +126,14 @@ const check_mailInfo = async(content,browser)=>{
                 }
                 else{
                     console.log('*******************************첫클릭 XXX***********************************')
-
                     await imsPage.goto(`https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=${_imsNum}`);
                 }
                
-                
             } 
             break
         default:
             console.log(`Unclassified Mail [현재는 IMS 이슈 메일만 분류 되어있음]`);
     }
-
-
     isEnter =true
 
 }
@@ -372,7 +367,7 @@ const mainRunner = async()=>{
 
     console.log(commander.h)
     const browser = await puppeteer.launch({
-        headless: false, 
+        headless: commander.h, 
         args: ['--window-size=1920,1080']
     });
 
