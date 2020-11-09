@@ -104,19 +104,24 @@ const check_mailInfo = async(content,browser)=>{
             if(_No == "No"){
                 if(!isEnter){
 
-                    console.log('*******************************첫클릭***********************************');
+                    console.log(chalk.yellowBright('******************************* first Noti Click ***********************************'));
                     await first_execute(imsPage,_imsNum);
+
 
                 }
                 else{
 
-                    console.log('*******************************첫클릭 XXX***********************************')
+                    console.log(chalk.greenBright('******************************* After first Noti Click ***********************************'));
                     await after_execute(imsPage,_imsNum);
+
+
                 }
                
             } 
             break
         default:
+            // 현재 버전에서는 IMS 메일이 아닌 다른 noti 클릭시 빈 page가 생성함 
+            // 해당 현재 함수 checkMail Info 수행시 무조건적으로 page 생서하는 라인 수정 필요함 
             console.log(`Unclassified Mail [현재는 IMS 이슈 메일만 분류 되어있음]`);
     }
     isEnter =true
@@ -165,9 +170,9 @@ const mailMonitoring = async(page,browser)=>{
     console.log(readList);
     console.log(chalk.yellowBright(`--------------------------------------------------  Current Total Mail List  --------------------------------------------------`));
 
-    console.log(chalk.cyanBright(`--------------------------------------------------  Detetct Mail Status List  -------------------------------------------------`));
+    console.log(chalk.cyanBright(`--------------------------------------------------  Detect Mail Status List  -------------------------------------------------`));
     console.log(unReadList);
-    console.log(chalk.cyanBright(`--------------------------------------------------  Detetct Mail Status List  -------------------------------------------------`));
+    console.log(chalk.cyanBright(`--------------------------------------------------  Detect Mail Status List  -------------------------------------------------`));
 
 
     //----------------------------------------------------------------------------------------------------------------------
