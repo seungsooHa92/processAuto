@@ -33,7 +33,9 @@ emptyFlag,
 } = require('./common_dataset');
 const {
 createCustomNoti,
-classifyMail
+classifyMail,
+first_execute,
+after_execute
 } = require('./common_function');
 
 const _id = `seungsoo_ha`;
@@ -42,7 +44,7 @@ const __pw = `S1s1s1s1s1!`;
 const UNREAD = "읽지 않음 ";
 const SEND = "전달 됨 ";
 let cnt = 0;
-const MAIL_POLLINGTIME = 300*1000//*5 // 5 Minutes
+const MAIL_POLLINGTIME = 60*1000//*5 // 5 Minutes
 let isEnter = false
 
 /**
@@ -92,8 +94,8 @@ const check_mailInfo = async(content,browser)=>{
 
     let class_flag = splitted[0]; // IMS
     let class_flag2 = splitted[1]; // No.123456
-    let _No = class_flag2.split('.')[0];
-    let _imsNum = class_flag2.split('.')[1];
+    let _No = class_flag2.split('.')[0]; // No ---
+    let _imsNum = class_flag2.split('.')[1];  // Issue Number
 
     switch(class_flag){
 
@@ -101,32 +103,15 @@ const check_mailInfo = async(content,browser)=>{
             console.log('[IMS] mail received ...');
             if(_No == "No"){
                 if(!isEnter){
+
                     console.log('*******************************첫클릭***********************************');
-                    await imsPage.goto(`https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=${_imsNum}`);
-
-
-                    await imsPage.type('#id',_id,{delay:20});
-
-                    /*
-                    puppeteer에서 input태그 처리하는 방법 
-                    reference : https://github.com/puppeteer/puppeteer/issues/441
-                    */  
-                    await imsPage.evaluate(()=>{
-                        document.querySelector(`body > form > table > tbody > tr > td > table > tbody > tr:nth-child(2) > td:nth-child(1) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > input[type=password]`)
-                            .select();
-                    })
-        
-                    await imsPage.keyboard.type(__pw);
-
-                    await imsPage.evaluate(()=>{
-                        document.querySelector(`body > form > table > tbody > tr > td > table > tbody > tr:nth-child(2) > td:nth-child(1) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(3) > input[type=image]`)
-                            .click();
-                    })
+                    await first_execute(imsPage,_imsNum);
 
                 }
                 else{
+
                     console.log('*******************************첫클릭 XXX***********************************')
-                    await imsPage.goto(`https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=${_imsNum}`);
+                    await after_execute(imsPage,_imsNum);
                 }
                
             } 
@@ -367,7 +352,7 @@ const mainRunner = async()=>{
 
     console.log(commander.h)
     const browser = await puppeteer.launch({
-        headless: commander.h, 
+        headless: false, 
         args: ['--window-size=1920,1080']
     });
 

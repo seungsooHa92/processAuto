@@ -1,9 +1,27 @@
 const nn = require('node-notifier');
+const chalk = require('chalk');
 const _id = `seungsoo_ha`;
 const _pw = `S1s1s1s1!`;
 const __pw = `S1s1s1s1s1!`;
-const chalk = require('chalk');
 
+/**
+ * 
+ *  ----------------------------------------------------------------------------------------------------------------------
+ * 
+ *  @function createCustomNoti
+ *
+ *  @param options: notification Alarm 을 만들때 사용하는 option 값을 위한 parameter 
+ *  @param isClick: click 콜백을 사용할지 안할지 bool
+ *  @param clickFn: click 콜백함수 정의 
+ *  @param 
+
+ *  @description
+ *  <pre>
+ *      i. Custom Notification Alarm을 생성한다. 
+ *  </pre>
+ *  
+ *  -----------------------------------------------------------------------------------------------------------------------
+ */
 
 const createCustomNoti = (options,isClick,clickFn)=>{
 
@@ -18,19 +36,39 @@ const createCustomNoti = (options,isClick,clickFn)=>{
     }
 }
 
-const imsFirst = async(page)=>{
+/**
+ * 
+ *  ----------------------------------------------------------------------------------------------------------------------
+ * 
+ *  @function first_execute
+ *
+ *  @param page:  Page 객체 -> 해당 함수에서는 imsPage 역할 
+ *  @param imsNum: 이슈번호 
+ *
+ *  @description
+ *  <pre>
+ *      i. 첫 노티 클릭시 실행되는 함수 
+ *      ii. ims Login Page -> go To #imsNum page
+ *  </pre>
+ *  
+ *  -----------------------------------------------------------------------------------------------------------------------
+ */
 
-    await page.type('#id',_id,{delay:20});
-
+const first_execute = async(page,imsNum)=>{
+  
     /*
     puppeteer에서 input태그 처리하는 방법 
     reference : https://github.com/puppeteer/puppeteer/issues/441
     */  
+    await page.goto('https://ims.tmaxsoft.com/tody/auth/login.do');
+    await page.type('#id',_id,{delay:20});
+
+
     await page.evaluate(()=>{
         document.querySelector(`body > form > table > tbody > tr > td > table > tbody > tr:nth-child(2) > td:nth-child(1) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > input[type=password]`)
         .select();
     })
-        
+
     await page.keyboard.type(__pw);
 
     await page.evaluate(()=>{
@@ -38,9 +76,54 @@ const imsFirst = async(page)=>{
         .click();
     })
 
-
+    await page.waitForSelector('body > div:nth-child(2) > table > tbody > tr > td:nth-child(2) > table > tbody > tr:nth-child(2) > td > table:nth-child(1) > tbody > tr:nth-child(2) > td > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td.title6' , {
+        timeout: 60000
+    });
+    
+    await page.goto(`https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=${imsNum}&menuCode=issue_list`);
+  
 
 }
+
+/**
+ * 
+ *  ----------------------------------------------------------------------------------------------------------------------
+ * 
+ *  @function after_execute
+ *
+ *  @param page:  Page 객체 -> 해당 함수에서는 imsPage 역할 
+ *  @param imsNum: 이슈번호 
+ *
+ *  @description
+ *  <pre>
+ *      first_execute 함수에서 login 처리 해준 후 수행되기때문에 바로 특정 imsNum 페이지로 간다
+ *  </pre>
+ *  
+ *  -----------------------------------------------------------------------------------------------------------------------
+ */
+const after_execute = async(page,imsNum)=>{
+    await page.goto(`https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=${imsNum}`);
+
+}
+
+
+/**
+ * 
+ *  ----------------------------------------------------------------------------------------------------------------------
+ * 
+ *  @function classifyMail
+ *
+ *  @param content:  issue 내용을 담아올 content
+ *  @param browser:  브라우저 객체 
+ *
+ *  @description
+ *  <pre>
+ *      메일 분류를 위한 함수 
+ *  </pre>
+ *  
+ *  -----------------------------------------------------------------------------------------------------------------------
+ */
+
 const classifyMail = async(content,browser)=>{
 
 
@@ -86,4 +169,6 @@ const classifyMail = async(content,browser)=>{
 
 module.exports = {
     createCustomNoti,
+    first_execute,
+    after_execute
 }
