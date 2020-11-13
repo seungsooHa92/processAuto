@@ -66,9 +66,6 @@ const main = async()=>{
     let initial_value = _heights.scrollHeight - sum;
 
     await page.evaluate(`window.scrollTo(0,${initial_value})`)
-    
-    let DOMRectX = 212;
-    let DOMRectY = 69;
 
     let index = 0;
 
@@ -90,7 +87,7 @@ const main = async()=>{
         index++;
     }
 }
-main();
+//main();
 
 const commentDiv = async()=>{
 
@@ -114,12 +111,14 @@ const commentDiv = async()=>{
     let commentDivData = await page.evaluate(()=>{
 
         let comments = document.querySelector('#CommentsDiv'); // Action Div 를 반환한다.
-
+        let actionLog = document.getElementById(`CommentsDiv`);
+        let {y} = actionLog.getBoundingClientRect()
         let comment_children = comments.children;
         let arr = Array.from(comment_children)
         const actionInfo ={
             getBound_:[],
-            id_:[]
+            id_:[],
+            scrollinitPoint:y
         }
         arr.forEach((ele)=>{
             console.log(ele)
@@ -138,21 +137,27 @@ const commentDiv = async()=>{
         return Promise.resolve(actionInfo);  
     })
     actionDiv = await commentDivData;
-    console.log('[actionDiv]', actionDiv.getBound_,actionDiv.id_);
+    console.log('[actionDiv]', actionDiv.getBound_);
 
-    let initial_value = 0;
+
+    let toPoint = actionDiv.scrollinitPoint;
+    console.log('[before Loop] toPoint',toPoint)
     for(let i = 0 ; i < actionDiv.getBound_.length ; i++){
-        await page.evaluate(`window.scrollTo(${initial_value},${initial_value}+${actionDiv.getBound_[i].height})`);
-        initial_value += actionDiv.getBound_[i].height;
+    
+        await page.evaluate(`window.scrollTo(0,${toPoint})`);
+       
         await page.screenshot({
-            clip: actionDiv.getBound_[i],
+      
             path:path.join(__dirname,`/res/testResult/scroll_${i}.png`),
         })
-        await page.waitForTimeout(1000)
+        await page.waitForTimeout(1000);
+
+        toPoint += actionDiv.getBound_[i].height;
+        console.log('[     Loop] toPoint',toPoint)
     }
 
 }
 
-//commentDiv()
+commentDiv()
 
 

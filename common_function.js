@@ -111,6 +111,39 @@ const after_execute = async(page,imsNum)=>{
  * 
  *  ----------------------------------------------------------------------------------------------------------------------
  * 
+ *  @function checkMail
+ *
+ *  @param content:  issue 내용을 담아올 content
+ *  @param browser:  브라우저 객체 
+ *
+ *  @description
+ *  <pre>
+ *      mail 함에서 새로운 메일 내용 확인후 mail 메인 화면으로 돌아오는 함수
+ *  </pre>
+ *  
+ *  -----------------------------------------------------------------------------------------------------------------------
+ */
+const checkMail = async(browser)=>{
+
+    const detailMailPage = await browser.newPage();
+    await detailMailPage.setViewport({//set Page viewPort
+                        width: 1920,
+                        height: 1080,
+                        deviceScaleFactor: 1,
+                });
+
+
+
+
+
+
+
+}
+
+/**
+ * 
+ *  ----------------------------------------------------------------------------------------------------------------------
+ * 
  *  @function classifyMail
  *
  *  @param content:  issue 내용을 담아올 content

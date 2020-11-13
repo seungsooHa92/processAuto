@@ -1,24 +1,29 @@
 const chalk = require('chalk');
 const figlet = require('figlet');
-const commander = require('commander');
+const inquirer = require('inquirer');
 
 const start_prompt = ()=>{
 
-    console.log(
-        chalk.magentaBright(
-            figlet.textSync('[  Work AutoMation  ]')
-            )
-        );
+    console.log(chalk.magentaBright(figlet.textSync('[  Work AutoMation  ]')));
 
-    commander
-        .option('-h , --h <Bool>',' True/False')
-        .option('-s, --s <*>','star parameter')
-        .action(()=>{
-            console.log(chalk.blueBright('*********************************************************'));
-            console.log(chalk.blueBright(`[Headelss : ${commander.h}]  [star : ${commander.s}]`));
-            console.log(chalk.blueBright('*********************************************************'));
-
-    }).parse(process.argv);
+    inquirer
+    .prompt([
+    /* Pass your questions in here */
+    
+    ])
+    .then(answers => {
+    // Use user feedback for... whatever!!
+    
+    })
+    .catch(error => {
+        if(error.isTtyError) {
+        // Prompt couldn't be rendered in the current environment
+    
+        }
+        else {
+      // Something else when wrong
+        }
+  });
 
 }
 

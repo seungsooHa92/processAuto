@@ -52,10 +52,11 @@ let isEnter = false
  *  ----------------------------------------------------------------------------------------------------------------------
  * 
  *  @function check_mailInfo
+ *
+ *  @param page: mailPage를 받아옴
  *  @param content: 안읽은 메일 알람 notification 클릭시 받아오는 메시지 값 
  *  @param browser: mainRunner에서 생성된 puppeteer browser 객체를 
                     받아옴.
- *  @param 
  *  @param 
 
  *  @description
@@ -67,7 +68,7 @@ let isEnter = false
  *  
  *  -----------------------------------------------------------------------------------------------------------------------
  */
-const check_mailInfo = async(content,browser)=>{
+const check_mailInfo = async(page,mailId,content,browser)=>{
     /*
     message format
     '[IMS] No.243229 Action Registered : [NH투자증권] PromanagerOPS 느린 현상 개선 요청 (이슈분리:240190)',
@@ -80,49 +81,63 @@ const check_mailInfo = async(content,browser)=>{
     3. etc..
     */
     
-    console.log(chalk.magentaBright(`[check_mailInfo] : ${content}`));
+    console.log(chalk.yellowBright('@@@@@@@@@@@   Mail Info   @@@@@@@@@@@'));
+    console.log(chalk.magentaBright(`<< check_mailInfo >> : ${content}`));
+    console.log(chalk.magentaBright(`<< check_mailID Info >> : ${mailId}`));
+    console.log(chalk.yellowBright('@@@@@@@@@@@   Mail Info   @@@@@@@@@@@'));
+
 
     let origin_ = content;
     let splitted = origin_.split(' ');
-    
-    const imsPage = await browser.newPage();
-    await imsPage.setViewport({//set Page viewPort
-        width: 1920,
-        height: 1080,
-        deviceScaleFactor: 1,
-    });
-
     let class_flag = splitted[0]; // IMS
     let class_flag2 = splitted[1]; // No.123456
     let _No = class_flag2.split('.')[0]; // No ---
     let _imsNum = class_flag2.split('.')[1];  // Issue Number
 
+    /*
+    await page.click(`#${mailId}`,{clickCount:5 }).then((result)=>{
+        console.log('mail page double Clicked')
+    });    
+
+    await page.waitForSelector('#messagetoolbar');
+    await page.waitForTimeout(500);
+   */
     switch(class_flag){
 
         case "[IMS]":
             console.log('[IMS] mail received ...');
             if(_No == "No"){
+                // Issue 관련된 메일일때 imsPage 생성후 처리 
+                const imsPage = await browser.newPage();
+                await imsPage.setViewport({//set Page viewPort
+                        width: 1920,
+                        height: 1080,
+                        deviceScaleFactor: 1,
+                });
+
                 if(!isEnter){
 
                     console.log(chalk.yellowBright('******************************* first Noti Click ***********************************'));
                     await first_execute(imsPage,_imsNum);
-
+                
 
                 }
                 else{
-
                     console.log(chalk.greenBright('******************************* After first Noti Click ***********************************'));
                     await after_execute(imsPage,_imsNum);
 
 
                 }
-               
             } 
             break
+
+
         default:
             // 현재 버전에서는 IMS 메일이 아닌 다른 noti 클릭시 빈 page가 생성함 
             // 해당 현재 함수 checkMail Info 수행시 무조건적으로 page 생서하는 라인 수정 필요함 
-            console.log(`Unclassified Mail [현재는 IMS 이슈 메일만 분류 되어있음]`);
+            console.log(chalk.redBright(`Unclassified Mail [현재는 IMS 이슈 메일만 분류 되어있음]`));
+    
+
     }
     isEnter =true
 
@@ -165,7 +180,24 @@ const mailMonitoring = async(page,browser)=>{
    
     let readList = await page.$$eval(('td.subject'), readList => readList.map(ele=>ele.innerText));
     let unReadList = await page.$$eval(('td.subject'), readList => readList.map(ele=>ele.children[0].title));
-   
+
+    let get_trId = await page.evaluate(()=>{
+        
+        let origin_tr = document.querySelectorAll('tr');
+        let og_tr = Array.from(origin_tr);
+        let mail_tr = og_tr.splice(2);
+
+        let mail_tr_id = [];
+
+        mail_tr.forEach((ele)=>{
+            mail_tr_id.push(ele.id);
+        })
+
+        return Promise.resolve(mail_tr_id);  
+
+    })
+    
+
     console.log(chalk.yellowBright(`--------------------------------------------------  Current Total Mail List  --------------------------------------------------`));
     console.log(readList);
     console.log(chalk.yellowBright(`--------------------------------------------------  Current Total Mail List  --------------------------------------------------`));
@@ -173,6 +205,13 @@ const mailMonitoring = async(page,browser)=>{
     console.log(chalk.cyanBright(`--------------------------------------------------  Detect Mail Status List  -------------------------------------------------`));
     console.log(unReadList);
     console.log(chalk.cyanBright(`--------------------------------------------------  Detect Mail Status List  -------------------------------------------------`));
+    
+    // mail Id
+    mail_id = await get_trId;
+    console.log(chalk.magentaBright(`--------------------------------------------------  Detect Mail Status List  -------------------------------------------------`));
+    console.log(mail_id);
+    console.log(chalk.magentaBright(`--------------------------------------------------  Detect Mail Status List  -------------------------------------------------`));
+
 
 
     //----------------------------------------------------------------------------------------------------------------------
@@ -194,6 +233,8 @@ const mailMonitoring = async(page,browser)=>{
             console.log(options);
             console.log(options.id);
             console.log('completeNotiClickFn 콜백이유 && 다 읽었수~~~~');
+
+
         }
 
         createCustomNoti(completeOption, true, completeNotiClickFn);
@@ -222,16 +263,16 @@ const mailMonitoring = async(page,browser)=>{
                 w:true,
                 id : unReadNotiRandomId,
                 message: `${readList[i]}`,
+                messageId : `${mail_id[i]}`,
                 icon: path.join(__dirname, '/res/images/bell.png'), // Absolute path (doesn't work on balloons)
                 sound: true, // Only Notification Center or Windows Toasters
                 wait: false // Wait with callback, until user action is taken against notification, does not apply to Windows Toasters as they always wait or notify-send as it does not support the wait option
             }
-            let unReadNotiClickFn = (notifierObj,options,event)=>{
-                //console.log(notifierObj);
+            let unReadNotiClickFn = async (notifierObj,options,event)=>{
                 console.log(chalk.bgYellowBright('UnRead Mail Clicked '));
-                //console.log(options);
-                //console.log(options.id);
-                check_mailInfo(options.message,browser);
+              
+   
+                check_mailInfo(page, options.messageId, options.message , browser);
             }
             createCustomNoti(unReadOption, true, unReadNotiClickFn);
 
@@ -291,7 +332,7 @@ const mailMonitoring = async(page,browser)=>{
 
         }       
         if(unReadList[i] == '전달됨 '){
-
+            /*
             notifier.notify(
             {
                 title: 'Sending Alarm ',
@@ -302,34 +343,21 @@ const mailMonitoring = async(page,browser)=>{
             },
             function (err, response) {
             // Response is response from notification
-            
             });
-
             notifier.on('click',(notifierObj,options,event)=>{
-                
+
                 console.log(chalk.cyanBright('<><><><>e<><><><><><><><><>    Sending Mail Clicked    <><><><><><><><><><><><><>'));
                 //console.log(notifierObj); // Return : window.toaster object 
                 console.log(options); // Return : notifier.notify 의 설정값
                 console.log(event); // Return: empty Object  
-
-                
-                /*
-                굳이 onClick 콜백 내부에서 새롭게 페이지를 옮길 필요는 없을듯..?
-                page.goto('https://mail.tmax.co.kr/?_task=mail&_action=show&_uid=42973&_mbox=INBOX&_caps=pdf%3D1%2Cflash%3D0%2Ctif%3D0')
-                    .then((result)=>{
-                        console.log(result);
-                    })
-
-                */
-
             })
-
+            */
         }
     }
     console.timeEnd(`[mailMonitoring] executed         ....`);
 
-}
 
+}
 /**
  * 
  *  ----------------------------------------------------------------------------------------------------------------------
@@ -350,17 +378,17 @@ const mailMonitoring = async(page,browser)=>{
 const mainRunner = async()=>{
 
     //TODO
-    let headless_;
-    commander.h ? headless_ = true : headless_ = false;
-
+    
     start_prompt();
 
-    console.log(commander.h)
+    commander.h ? headless_ = true : headless_ =false
+      
+    console.log('&&&&& ',headless_)
     const browser = await puppeteer.launch({
-        headless: false, 
+        headless: headless_, 
         args: ['--window-size=1920,1080']
     });
-
+    
     const mailPage = await browser.newPage();
     await mailPage.setViewport(
         {//set Page viewPort
@@ -385,18 +413,13 @@ const mainRunner = async()=>{
     let cnt = 0; 
     let format = Date_formatting(); 
 
-
     while(true){
         console.log(`[Polling Count : ${cnt++}  `)
 
         await mailMonitoring(mailPage,browser);
         await mailPage.waitForTimeout(MAIL_POLLINGTIME);
         await mailPage.reload({ waitUntil: ["networkidle0"] });
-
     }
-
-
 }
-
 mainRunner();
 
