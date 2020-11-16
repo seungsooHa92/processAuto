@@ -212,8 +212,6 @@ const mailMonitoring = async(page,browser)=>{
     console.log(mail_id);
     console.log(chalk.magentaBright(`--------------------------------------------------  Detect Mail Status List  -------------------------------------------------`));
 
-
-
     //----------------------------------------------------------------------------------------------------------------------
      
     let completeNotiRandomId = Math.round(Math.random() * 0xffffff).toString(16); // Notification 별로 unique 한 id값 부여 
