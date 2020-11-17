@@ -21,6 +21,9 @@ const commander = require('commander');
 const toast = require('powertoast');
 const path = require('path');
 const _ = require('lodash');
+const inquirer = require('inquirer');
+const got = require('got');
+
 
 const {
 start_prompt,
@@ -50,7 +53,7 @@ const SEND = "전달 됨 ";
 let cnt = 0;
 const dev_MAIL_POLLINGTIME = 60*1000; 
 const MAIL_POLLINGTIME = 300*1000;
-const inquirer = require('inquirer');
+
 
 let isEnter = false
 
@@ -120,13 +123,26 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                     width : 1920,               
                     height : 1080,               
                 });
+                /*
+                TODO
+                    issue data post To Server(through got package);
+                    if else -> need to change Clean Code
 
+                */
                 if(!isEnter){
 
                     console.log(chalk.yellowBright('***** first Noti Click *****'));
                     await first_execute(imsPage,_imsNum);
                     // await imsPage.waitForNavigation({waitUntil:'networkidle0'});
-                    await page_scrapper(imsPage,imsTargetURL);
+                    let _getIssueData = await page_scrapper(imsPage,imsTargetURL);
+
+                    await got.post('http://192.168.17.36:5000/puppeteer_', {
+                        json: {
+                            _getIssueData
+                        },
+                        responseType: 'json'
+                    });
+
                 }
                 else{
                     console.log(chalk.greenBright('***** After first Noti Click ******'));

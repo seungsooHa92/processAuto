@@ -206,9 +206,9 @@ const page_scrapper = async(page,url)=>{
 
     
     getIssueData = await get_issueInfoTable;
-    console.log(getIssueData);
+    //console.log(getIssueData);
   
-
+    return Promise.resolve(getIssueData)
 
 
 }
