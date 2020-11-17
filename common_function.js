@@ -178,7 +178,8 @@ const page_scrapper = async(page,url)=>{
 
         let actionText = [];
         let actionHsitoryInfo = [];
-        let issueManageInfo =[];
+        let issueManageInfo = new Object();
+
 
         document.querySelectorAll('[id^="commDescTR_"]').forEach((action)=>{
             actionText.push(action.innerText);
@@ -188,18 +189,26 @@ const page_scrapper = async(page,url)=>{
             actionHsitoryInfo.push(action_info.innerText);
         })
     
+        let trs_array = Array.from(document.querySelector(`#issueInfoTable > tbody > tr > td:nth-child(1) > table > tbody`).children);
+
+        
+        trs_array.forEach((tr)=>{
+            let _property = tr.cells[0].innerText.replace(/\s+/g, '').toString();
+            issueManageInfo[_property] = tr.cells[1].innerText
+        })
+
         requireIssueInfoObj.actions = actionText;
         requireIssueInfoObj.actionHistory = actionHsitoryInfo;
-        requireIssueInfoObj.issueManageInfo = null;
-
-        return Promise.resolve(requireIssueInfoObj);  
-
-
+        requireIssueInfoObj.issueBasicInfo = issueManageInfo;
+        
+        return Promise.resolve(requireIssueInfoObj)
     })
 
+    
     getIssueData = await get_issueInfoTable;
     console.log(getIssueData);
   
+
 
 
 }
