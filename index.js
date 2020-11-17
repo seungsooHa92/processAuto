@@ -31,11 +31,15 @@ const {
 emptyFlag,
 //completeNoti
 } = require('./common_dataset');
+
 const {
+
 createCustomNoti,
 classifyMail,
 first_execute,
-after_execute
+after_execute,
+page_scrapper
+
 } = require('./common_function');
 
 const _id = `seungsoo_ha`;
@@ -44,14 +48,11 @@ const __pw = `S1s1s1s1s1!`;
 const UNREAD = "읽지 않음 ";
 const SEND = "전달 됨 ";
 let cnt = 0;
-const dev_MAIL_POLLINGTIME = 90*1000; 
+const dev_MAIL_POLLINGTIME = 60*1000; 
 const MAIL_POLLINGTIME = 300*1000;
 const inquirer = require('inquirer');
 
 let isEnter = false
-
-
-
 
 /**
  * 
@@ -74,17 +75,11 @@ let isEnter = false
  *  
  *  -----------------------------------------------------------------------------------------------------------------------
  */
-const check_mailInfo = async(page,mailId,content,browser)=>{
+const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
     /*
     message format
     '[IMS] No.243229 Action Registered : [NH투자증권] PromanagerOPS 느린 현상 개선 요청 (이슈분리:240190)',
     '[어린이집 공지] 2021년도 Tmax 사랑 어린이집 원아모집 안내',
-
-    -> mail 마다 어떻게 분류하고 어떻게 처리할것인지 
-
-    1. ims 메일이면 ims사이트 들어가서 스크린샷 찍고 액션내용 확인 
-    2. 공지 메일이면 단순 pdf 파일등으로 저장 
-    3. etc..
     */
     
     console.log(chalk.yellowBright('@@@@@@@@@@@   Mail Info   @@@@@@@@@@@'));
@@ -99,15 +94,20 @@ const check_mailInfo = async(page,mailId,content,browser)=>{
     let class_flag2 = splitted[1]; // No.123456
     let _No = class_flag2.split('.')[0]; // No ---
     let _imsNum = class_flag2.split('.')[1];  // Issue Number
+    let imsTargetURL = `https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=${_imsNum}`
 
-    /*
+
+    /* 
+    mailPage 에서 안 읽은 메일함 리스트를 클릭하려고 했음
+    
     await page.click(`#${mailId}`,{clickCount:5 }).then((result)=>{
         console.log('mail page double Clicked')
     });    
-
     await page.waitForSelector('#messagetoolbar');
     await page.waitForTimeout(500);
    */
+
+
     switch(class_flag){
 
         case "[IMS]":
@@ -115,24 +115,24 @@ const check_mailInfo = async(page,mailId,content,browser)=>{
             if(_No == "No"){
                 // Issue 관련된 메일일때 imsPage 생성후 처리 
                 const imsPage = await browser.newPage();
-                await imsPage.setViewport({//set Page viewPort
-                        width: 1920,
-                        height: 1080,
-                        deviceScaleFactor: 1,
+
+                await page.setViewport({//set Page viewPort
+                    width : 1920,               
+                    height : 1080,               
                 });
 
                 if(!isEnter){
 
-                    console.log(chalk.yellowBright('******************************* first Noti Click ***********************************'));
+                    console.log(chalk.yellowBright('***** first Noti Click *****'));
                     await first_execute(imsPage,_imsNum);
-                
-
+                    // await imsPage.waitForNavigation({waitUntil:'networkidle0'});
+                    await page_scrapper(imsPage,imsTargetURL);
                 }
                 else{
-                    console.log(chalk.greenBright('******************************* After first Noti Click ***********************************'));
+                    console.log(chalk.greenBright('***** After first Noti Click ******'));
                     await after_execute(imsPage,_imsNum);
-
-
+                    //await imsPage.waitForNavigation({waitUntil:'networkidle0'});
+                    await page_scrapper(imsPage,imsTargetURL);
                 }
             } 
             break
@@ -142,11 +142,10 @@ const check_mailInfo = async(page,mailId,content,browser)=>{
             // 현재 버전에서는 IMS 메일이 아닌 다른 noti 클릭시 빈 page가 생성함 
             // 해당 현재 함수 checkMail Info 수행시 무조건적으로 page 생서하는 라인 수정 필요함 
             console.log(chalk.redBright(`Unclassified Mail [현재는 IMS 이슈 메일만 분류 되어있음]`));
-    
 
     }
-    isEnter =true
 
+    isEnter =true
 }
 
 /**
@@ -172,21 +171,35 @@ const check_mailInfo = async(page,mailId,content,browser)=>{
 const mailMonitoring = async(page,browser)=>{
 
     console.time(`[mailMonitoring] executed         ....`);
-
+    
+    /* 
+    axios not used (got)
+    
     await axios.get(`https://mail.tmax.co.kr/?_task=mail&_mbox=INBOX`)
         .then((response)=>{
             const html = response.data;
             const $ = cheerio.load(html);
             const mailSubject = $(` td.subject > a `);
-
+            console.log(mailSubject);
         })
         .catch((error)=>{
             console.log(error);
          })
-   
+    */
+
+    // current Mail page -> get All Mail List
     let readList = await page.$$eval(('td.subject'), readList => readList.map(ele=>ele.innerText));
+    // current Mail page -> get Mail Status
     let unReadList = await page.$$eval(('td.subject'), readList => readList.map(ele=>ele.children[0].title));
 
+    /*
+
+        mailPage Enter  
+        i.   page Evaluate get All Selector which have tr Selector
+        ii.  splice(2) => eliminate 제목 .. unnecessary things
+        iii. mail_tr_id = []  : it is all id List and Return Promise
+
+    */
     let get_trId = await page.evaluate(()=>{
         
         let origin_tr = document.querySelectorAll('tr');
@@ -198,12 +211,10 @@ const mailMonitoring = async(page,browser)=>{
         mail_tr.forEach((ele)=>{
             mail_tr_id.push(ele.id);
         })
-
         return Promise.resolve(mail_tr_id);  
 
     })
     
-
     console.log(chalk.yellowBright(`--------------------------------------------------  Current Total Mail List  --------------------------------------------------`));
     console.log(readList);
     console.log(chalk.yellowBright(`--------------------------------------------------  Current Total Mail List  --------------------------------------------------`));
@@ -234,17 +245,14 @@ const mailMonitoring = async(page,browser)=>{
         }
         let completeNotiClickFn = (notifierObj,options,event)=>{
             //console.log(notifierObj);
-            console.log(options);
-            console.log(options.id);
-            console.log('completeNotiClickFn 콜백이유 && 다 읽었수~~~~');
-
-
+            //console.log(options);
+            //console.log(options.id);
+            console.log('메일 확인 완료 noti Click');
         }
+        // make complete Check Noti
 
         createCustomNoti(completeOption, true, completeNotiClickFn);
     }
-
-
 
     for(let i = 0 ; i < unReadList.length ; i ++){
         /*
@@ -273,14 +281,15 @@ const mailMonitoring = async(page,browser)=>{
                 wait: false // Wait with callback, until user action is taken against notification, does not apply to Windows Toasters as they always wait or notify-send as it does not support the wait option
             }
             let unReadNotiClickFn = async (notifierObj,options,event)=>{
+
                 console.log(chalk.bgYellowBright('UnRead Mail Clicked '));
-              
-   
+                /* 
+                    unRead Mail and it is IMS Mail 
+                    go to Ims Page
+                */
                 check_mailInfo(page, options.messageId, options.message , browser);
             }
             createCustomNoti(unReadOption, true, unReadNotiClickFn);
-
-
             /*
 
                 20.11.05
@@ -333,8 +342,8 @@ const mailMonitoring = async(page,browser)=>{
               
             });
             */
-
-        }       
+        }     
+        // forwarding한 메일 처리 
         if(unReadList[i] == '전달됨 '){
             /*
             notifier.notify(
@@ -386,9 +395,7 @@ const mainRunner = async(_headless)=>{
 
     const browser = await puppeteer.launch({
         headless: headlessMode, 
-        args: ['--window-size=1920,1080']
     });
-
     let i = 0 ;
     while(true){
         /*
@@ -398,27 +405,31 @@ const mainRunner = async(_headless)=>{
         */
         i++;
         const mailPage = await browser.newPage();
+    
         await mailPage.setViewport(
-            {//set Page viewPort
-            width: 1920,
-            height: 1080,
+            {
+            width : 1920,               
+            height : 1080,               
             deviceScaleFactor: 1,
             }    
         );
+      
+        //await mailPage._client.send('Emulation.clearDeviceMetricsOverride');
         await mailPage.goto('https://mail.tmax.co.kr/');
-        if(i ==1){
+
+        if(i == 1){
             // first enter -> login 
             await mailPage.type('#rcmloginuser',_id,{delay:20});
             await mailPage.type('#rcmloginpwd',_pw,{delay:20});
             await mailPage.$(`#rcmloginsubmit`).then((result)=>{
                 result.click();
             });
+            await mailPage.waitForSelector("#rcmbtn107");
+           
         }
-        console.log(chalk.greenBright(figlet.textSync(`#####        Load Main Mail Message List  ######`,{width : 120})));
-
+        console.log(chalk.greenBright(figlet.textSync(`** Load Mail List **`,{ width : 110} )));
+        
         await mailPage.waitForTimeout(1500);
-
-      
         //let format = Date_formatting(); 
         /*
         while(true){
@@ -429,16 +440,12 @@ const mainRunner = async(_headless)=>{
             await mailPage.reload({ waitUntil: ["networkidle0"] });
         }
         */
-        
         await mailMonitoring(mailPage,browser);
         await mailPage.waitForTimeout(dev_MAIL_POLLINGTIME);
         //await mailPage.reload({ waitUntil: ["networkidle0"] });
         await mailPage.close();    
-
-    }
-    
+    }   
 }
-
 /**
  * 
  *  -----------------------------------------------------
@@ -448,23 +455,29 @@ const mainRunner = async(_headless)=>{
  *      set preCondition
  *          ex >
  *              Headless Mode (T/F)    
- *
  *  </pre>
  *  -----------------------------------------------------
  */
-inquirer.prompt([{
-		type: 'list',
-		name: 'menu',
-		message: 'Work Process Automation Run! choose your Headless Mode [T/F] default is true',
-		choices: ['true', 'false'],
-}])
-.then((answers) => {
-
-		console.log(chalk.green('[Headless Mode]',answers.menu) + "를 선택하셨습니다.");
-        mainRunner(answers.menu);
-
-
-})
+inquirer
+    .prompt([
+        {
+		    type: 'list',
+		    name: 'head',
+		    message: 'Work Process Automation Run! choose your Headless Mode [T/F] default is true',
+		    choices: ['true', 'false'],
+        },
+        {
+            type: 'checkbox',
+		    name: 'screenshot',
+		    message: 'You want ScreenShot IMS Page ?',
+		    choices: ['true', 'false'],
+        }
+    
+    ])
+    .then((answers) => {
+	    console.log(chalk.green('[Headless Mode] is :',answers.head));
+        mainRunner(answers.head);
+    })
 
 
 

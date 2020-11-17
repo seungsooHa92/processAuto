@@ -3,6 +3,8 @@ const chalk = require('chalk');
 const _id = `seungsoo_ha`;
 const _pw = `S1s1s1s1!`;
 const __pw = `S1s1s1s1s1!`;
+const got = require('got');
+
 
 /**
  * 
@@ -27,7 +29,6 @@ const createCustomNoti = (options,isClick,clickFn)=>{
 
     let noti = new nn.WindowsToaster();
     noti.notify(options);
-
     if(isClick){
         /*
         event binding => noti.on(`click`)
@@ -71,20 +72,33 @@ const first_execute = async(page,imsNum)=>{
 
     await page.keyboard.type(__pw);
 
+    const navigation1 = page.waitForNavigation();
     await page.evaluate(()=>{
         document.querySelector(`body > form > table > tbody > tr > td > table > tbody > tr:nth-child(2) > td:nth-child(1) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(3) > input[type=image]`)
         .click();
     })
-
+    /*
     await page.waitForSelector('body > div:nth-child(2) > table > tbody > tr > td:nth-child(2) > table > tbody > tr:nth-child(2) > td > table:nth-child(1) > tbody > tr:nth-child(2) > td > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td.title6' , {
         timeout: 60000
     });
-    
-    await page.goto(`https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=${imsNum}&menuCode=issue_list`);
-  
+    */
+    await navigation1;
+
+    await page.type('#topIssueId',imsNum,{delay:20});
+
+    const navigation2 = page.waitForNavigation();
+    //await page.type(String.fromCharCode(13));
+    await page.keyboard.press('Enter');
+    await navigation2;
+
+    //await page.goto(`https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=${imsNum}&menuCode=issue_list`);
+    /*
+    await page.waitForNavigation({
+         waitUntil: 'networkidle0',
+    });
+    */
 
 }
-
 /**
  * 
  *  ----------------------------------------------------------------------------------------------------------------------
@@ -102,6 +116,7 @@ const first_execute = async(page,imsNum)=>{
  *  -----------------------------------------------------------------------------------------------------------------------
  */
 const after_execute = async(page,imsNum)=>{
+
     await page.goto(`https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=${imsNum}`);
 
 }
@@ -111,6 +126,90 @@ const after_execute = async(page,imsNum)=>{
  * 
  *  ----------------------------------------------------------------------------------------------------------------------
  * 
+ *  @function page_scrapper
+ *
+ *  @param page:  Page 객체 -> 해당 함수에서는 imsPage 역할 
+ *
+ *  @description
+ *  <pre>
+ *      1. notification click
+ *      2. Enter that Ims Page
+ *      3. screenshot page with scrolling
+ *  </pre>
+ *  
+ *  -----------------------------------------------------------------------------------------------------------------------
+ */
+const page_scrapper = async(page,url)=>{
+
+    /*
+    const getHeihgts_Data = await page.evaluate(()=>{
+
+        let scrollHeight_ = document.body.scrollHeight;
+        return Promise.resolve(scrollHeight_)
+
+    })
+
+    _heightsInfo = await getHeihgts_Data;
+    console.log('***',_heightsInfo);
+    await page.setViewport( 
+        {//set Page viewPort
+        width : 1920,               
+        height : _heightsInfo+1000,               
+    })
+    
+    await page.waitForTimeout('400');
+    */
+    /*
+    try {
+        const response = await got(url);
+        console.log(response.body);
+        const $ = cheerio.load(response.body);
+        console.log($('<td class=tilte></td>').data())
+
+    } catch (error) {
+        console.log(error.response.body);
+        //=> 'Internal server error ...'
+    }
+    */
+
+    let get_issueInfoTable = await page.evaluate(()=>{
+
+        let requireIssueInfoObj = new Object(); //action Info Object
+
+        let actionText = [];
+        let actionHsitoryInfo = [];
+        let issueManageInfo =[];
+
+        document.querySelectorAll('[id^="commDescTR_"]').forEach((action)=>{
+            actionText.push(action.innerText);
+        })
+
+        document.querySelectorAll('[id^="action_"]').forEach((action_info)=>{
+            actionHsitoryInfo.push(action_info.innerText);
+        })
+    
+        requireIssueInfoObj.actions = actionText;
+        requireIssueInfoObj.actionHistory = actionHsitoryInfo;
+        requireIssueInfoObj.issueManageInfo = null;
+
+        return Promise.resolve(requireIssueInfoObj);  
+
+
+    })
+
+    getIssueData = await get_issueInfoTable;
+    console.log(getIssueData);
+  
+
+
+}
+
+
+
+/**
+ * 
+ *  ----------------------------------------------------------------------------------------------------------------------
+ *  Not Used 
  *  @function checkMail
  *
  *  @param content:  issue 내용을 담아올 content
@@ -123,6 +222,7 @@ const after_execute = async(page,imsNum)=>{
  *  
  *  -----------------------------------------------------------------------------------------------------------------------
  */
+
 const checkMail = async(browser)=>{
 
     const detailMailPage = await browser.newPage();
@@ -130,18 +230,11 @@ const checkMail = async(browser)=>{
                         width: 1920,
                         height: 1080,
                         deviceScaleFactor: 1,
-                });
-
-
-
-
-
-
+        });
 
 }
-
 /**
- * 
+ *  Not used but later ..
  *  ----------------------------------------------------------------------------------------------------------------------
  * 
  *  @function classifyMail
@@ -158,7 +251,6 @@ const checkMail = async(browser)=>{
  */
 
 const classifyMail = async(content,browser)=>{
-
 
     console.log(chalk.magentaBright(`[check_mailInfo] : ${content}`));
 
@@ -192,16 +284,12 @@ const classifyMail = async(content,browser)=>{
         default:
             console.log(`Unclassified Mail [현재는 IMS 이슈 메일만 분류 되어있음]`);
     }
-
-
     cnt++
-
 }
-
-
 
 module.exports = {
     createCustomNoti,
     first_execute,
-    after_execute
+    after_execute,
+    page_scrapper
 }
