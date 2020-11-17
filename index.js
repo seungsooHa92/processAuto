@@ -44,8 +44,14 @@ const __pw = `S1s1s1s1s1!`;
 const UNREAD = "읽지 않음 ";
 const SEND = "전달 됨 ";
 let cnt = 0;
-const MAIL_POLLINGTIME = 60*1000//*5 // 5 Minutes
+const dev_MAIL_POLLINGTIME = 90*1000; 
+const MAIL_POLLINGTIME = 300*1000;
+const inquirer = require('inquirer');
+
 let isEnter = false
+
+
+
 
 /**
  * 
@@ -372,52 +378,93 @@ const mailMonitoring = async(page,browser)=>{
  *  
  *  -----------------------------------------------------------------------------------------------------------------------
  */
+   
+const mainRunner = async(_headless)=>{
 
-const mainRunner = async()=>{
+    // String to Bool
+    let headlessMode = (_headless === 'true')
 
-    //TODO
-    
-    start_prompt();
-
-    commander.h ? headless_ = true : headless_ =false
-      
-    console.log('&&&&& ',headless_)
     const browser = await puppeteer.launch({
-        headless: headless_, 
+        headless: headlessMode, 
         args: ['--window-size=1920,1080']
     });
-    
-    const mailPage = await browser.newPage();
-    await mailPage.setViewport(
-        {//set Page viewPort
-        width: 1920,
-        height: 1080,
-        deviceScaleFactor: 1,
-        }    
-    );
 
-    await mailPage.goto('https://mail.tmax.co.kr/');
-    await mailPage.type('#rcmloginuser',_id,{delay:20});
-    await mailPage.type('#rcmloginpwd',_pw,{delay:20});
-
-    await mailPage.$(`#rcmloginsubmit`).then((result)=>{
-        result.click();
-    });
-
-    console.log(chalk.greenBright(figlet.textSync(`#####        Load Main Mail Message List  ######`,{widht : 120})));
-
-    await mailPage.waitForTimeout(1500);
-
-    let cnt = 0; 
-    let format = Date_formatting(); 
-
+    let i = 0 ;
     while(true){
-        console.log(`[Polling Count : ${cnt++}  `)
+        /*
+            mail Server 의 session control 문제 때문에 
+            mailPage를 Close 하고 다시 키는 loop 문으로 문제 해결 
+            해당 프로그램을 계속 실행할시 시간이 어느정도 경과시 session 끊기는 현상 우회 
+        */
+        i++;
+        const mailPage = await browser.newPage();
+        await mailPage.setViewport(
+            {//set Page viewPort
+            width: 1920,
+            height: 1080,
+            deviceScaleFactor: 1,
+            }    
+        );
+        await mailPage.goto('https://mail.tmax.co.kr/');
+        if(i ==1){
+            // first enter -> login 
+            await mailPage.type('#rcmloginuser',_id,{delay:20});
+            await mailPage.type('#rcmloginpwd',_pw,{delay:20});
+            await mailPage.$(`#rcmloginsubmit`).then((result)=>{
+                result.click();
+            });
+        }
+        console.log(chalk.greenBright(figlet.textSync(`#####        Load Main Mail Message List  ######`,{width : 120})));
 
+        await mailPage.waitForTimeout(1500);
+
+      
+        //let format = Date_formatting(); 
+        /*
+        while(true){
+            console.log(`[Polling Count : ${cnt++}  `)
+
+            await mailMonitoring(mailPage,browser);
+            await mailPage.waitForTimeout(MAIL_POLLINGTIME);
+            await mailPage.reload({ waitUntil: ["networkidle0"] });
+        }
+        */
+        
         await mailMonitoring(mailPage,browser);
-        await mailPage.waitForTimeout(MAIL_POLLINGTIME);
-        await mailPage.reload({ waitUntil: ["networkidle0"] });
+        await mailPage.waitForTimeout(dev_MAIL_POLLINGTIME);
+        //await mailPage.reload({ waitUntil: ["networkidle0"] });
+        await mailPage.close();    
+
     }
+    
 }
-mainRunner();
+
+/**
+ * 
+ *  -----------------------------------------------------
+ *  @description
+ *  <pre>
+ *      before operate mainRunner
+ *      set preCondition
+ *          ex >
+ *              Headless Mode (T/F)    
+ *
+ *  </pre>
+ *  -----------------------------------------------------
+ */
+inquirer.prompt([{
+		type: 'list',
+		name: 'menu',
+		message: 'Work Process Automation Run! choose your Headless Mode [T/F] default is true',
+		choices: ['true', 'false'],
+}])
+.then((answers) => {
+
+		console.log(chalk.green('[Headless Mode]',answers.menu) + "를 선택하셨습니다.");
+        mainRunner(answers.menu);
+
+
+})
+
+
 

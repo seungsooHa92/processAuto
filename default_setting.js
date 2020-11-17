@@ -1,18 +1,26 @@
 const chalk = require('chalk');
 const figlet = require('figlet');
 const inquirer = require('inquirer');
+const prompt = inquirer.createPromptModule();
 
-const start_prompt = ()=>{
+
+const start_prompt = async ()=>{
 
     console.log(chalk.magentaBright(figlet.textSync('[  Work AutoMation  ]')));
-
-    inquirer
-    .prompt([
-    /* Pass your questions in here */
     
+    prompt([
+    /* Pass your questions in here */
+        {
+            type: "input",
+            name: 'faveReptile',
+            message: 'What is your favorite reptile?',
+            default: 'Alligators, of course!',
+        },  
+        
     ])
-    .then(answers => {
+    .then((answers) => {
     // Use user feedback for... whatever!!
+        console.info('Answer:', answers.faveReptile);
     
     })
     .catch(error => {
@@ -21,11 +29,14 @@ const start_prompt = ()=>{
     
         }
         else {
-      // Something else when wrong
+        // Something else when wrong
+
         }
-  });
+    });
+
 
 }
+
 
 const Date_formatting = ()=>{
     yymmdd = ()=>{
