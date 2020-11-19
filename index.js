@@ -23,8 +23,6 @@ const path = require('path');
 const _ = require('lodash');
 const inquirer = require('inquirer');
 const got = require('got');
-
-
 const {
 start_prompt,
 Date_formatting
@@ -130,11 +128,10 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
 
                 */
                 if(!isEnter){
-
                     console.log(chalk.yellowBright('***** first Noti Click *****'));
                     await first_execute(imsPage,_imsNum);
-                    // await imsPage.waitForNavigation({waitUntil:'networkidle0'});
                     let _getIssueData = await page_scrapper(imsPage,imsTargetURL);
+                    console.log('IMS Info Data',_getIssueData);
 
                     await got.post('http://192.168.17.36:5000/puppeteer_', {
                         json: {
@@ -142,15 +139,13 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                         },
                         responseType: 'json'
                     });
-
+            
                 }
                 else{
                     console.log(chalk.greenBright('***** After first Noti Click ******'));
                     await after_execute(imsPage,_imsNum);
-                    //await imsPage.waitForNavigation({waitUntil:'networkidle0'});
-                    await page_scrapper(imsPage,imsTargetURL);
                     let _getIssueData = await page_scrapper(imsPage,imsTargetURL);
-
+                    console.log('IMS Info Data',_getIssueData);
                     await got.post('http://192.168.17.36:5000/puppeteer_', {
                         json: {
                             _getIssueData
