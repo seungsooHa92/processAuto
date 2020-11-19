@@ -1,4 +1,5 @@
 const nn = require('node-notifier');
+const WindowsToaster = require('node-notifier/notifiers/toaster');
 const chalk = require('chalk');
 const _id = `seungsoo_ha`;
 const _pw = `S1s1s1s1!`;
@@ -27,7 +28,7 @@ const got = require('got');
 
 const createCustomNoti = (options,isClick,clickFn)=>{
 
-    let noti = new nn.WindowsToaster();
+    let noti = new WindowsToaster();
     noti.notify(options);
     if(isClick){
         /*

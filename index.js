@@ -149,6 +149,14 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                     await after_execute(imsPage,_imsNum);
                     //await imsPage.waitForNavigation({waitUntil:'networkidle0'});
                     await page_scrapper(imsPage,imsTargetURL);
+                    let _getIssueData = await page_scrapper(imsPage,imsTargetURL);
+
+                    await got.post('http://192.168.17.36:5000/puppeteer_', {
+                        json: {
+                            _getIssueData
+                        },
+                        responseType: 'json'
+                    });
                 }
             } 
             break
