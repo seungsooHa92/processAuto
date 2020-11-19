@@ -131,7 +131,19 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                     console.log(chalk.yellowBright('***** first Noti Click *****'));
                     await first_execute(imsPage,_imsNum);
                     let _getIssueData = await page_scrapper(imsPage,imsTargetURL);
+
                     console.log('IMS Info Data',_getIssueData);
+
+                    let data = JSON.stringify(_getIssueData);
+
+                    /* promisify await가 동작하지 않음 */
+                    // 1. promise then
+                    // 2. promisify
+                    // 3. async await https://stackoverflow.com/questions/31978347/fs-writefile-in-a-promise-asynchronous-synchronous-stuff
+
+                    fs.writeFile(`./res/data/ims_${_getIssueData.issueBasicInfo.IssueNumber}.json`,data,(err)=>{
+                        console.log('something wrong');
+                    });
 
                     await got.post('http://192.168.17.36:5000/puppeteer_', {
                         json: {
