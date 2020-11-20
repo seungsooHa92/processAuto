@@ -49,8 +49,9 @@ const __pw = `S1s1s1s1s1!`;
 const UNREAD = "읽지 않음 ";
 const SEND = "전달 됨 ";
 let cnt = 0;
-const dev_MAIL_POLLINGTIME = 60*1000; 
+const dev_MAIL_POLLINGTIME = 300*1000; 
 const MAIL_POLLINGTIME = 300*1000;
+
 
 
 let isEnter = false
@@ -82,13 +83,10 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
     '[IMS] No.243229 Action Registered : [NH투자증권] PromanagerOPS 느린 현상 개선 요청 (이슈분리:240190)',
     '[어린이집 공지] 2021년도 Tmax 사랑 어린이집 원아모집 안내',
     */
-    
     console.log(chalk.yellowBright('@@@@@@@@@@@   Mail Info   @@@@@@@@@@@'));
     console.log(chalk.magentaBright(`<< check_mailInfo >> : ${content}`));
     console.log(chalk.magentaBright(`<< check_mailID Info >> : ${mailId}`));
     console.log(chalk.yellowBright('@@@@@@@@@@@   Mail Info   @@@@@@@@@@@'));
-
-
     let origin_ = content;
     let splitted = origin_.split(' ');
     let class_flag = splitted[0]; // IMS
@@ -96,19 +94,14 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
     let _No = class_flag2.split('.')[0]; // No ---
     let _imsNum = class_flag2.split('.')[1];  // Issue Number
     let imsTargetURL = `https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=${_imsNum}`
-
-
     /* 
     mailPage 에서 안 읽은 메일함 리스트를 클릭하려고 했음
-    
     await page.click(`#${mailId}`,{clickCount:5 }).then((result)=>{
         console.log('mail page double Clicked')
     });    
     await page.waitForSelector('#messagetoolbar');
     await page.waitForTimeout(500);
    */
-
-
     switch(class_flag){
 
         case "[IMS]":
@@ -125,7 +118,6 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                 TODO
                     issue data post To Server(through got package);
                     if else -> need to change Clean Code
-
                 */
                 if(!isEnter){
                     console.log(chalk.yellowBright('***** first Noti Click *****'));
@@ -133,9 +125,7 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                     let _getIssueData = await page_scrapper(imsPage,imsTargetURL);
 
                     console.log('IMS Info Data',_getIssueData);
-
                     let data = JSON.stringify(_getIssueData);
-
                     /* promisify await가 동작하지 않음 */
                     // 1. promise then
                     // 2. promisify(TODO)
@@ -143,6 +133,7 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
 
                     //1. return new Promise at common_function
 
+                    console.log(chalk.blue(`[latest Action is]  :${_getIssueData.actions[0]}`));
                     jsonFileWrite(_getIssueData,data).then((results)=>{
                         console.log(`[1] json file Write`)
                     })
@@ -152,19 +143,19 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                         },
                         responseType: 'json'
                     });
-
-
             
                 }
                 else{
                     console.log(chalk.greenBright('***** After first Noti Click ******'));
                     await after_execute(imsPage,_imsNum);
                     let _getIssueData = await page_scrapper(imsPage,imsTargetURL);
+                    let data = JSON.stringify(_getIssueData);
+                    console.log(chalk.blue(`[latest Action is]  :${_getIssueData.actions[0]}`))
 
                     jsonFileWrite(_getIssueData,data).then((results)=>{
                         console.log(`[1] json file Write`)
                     })
-                    
+
                     await got.post('http://192.168.17.36:5000/puppeteer_', {
                         json: {
                             _getIssueData
@@ -174,19 +165,14 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                 }
             } 
             break
-
-
         default:
             // 현재 버전에서는 IMS 메일이 아닌 다른 noti 클릭시 빈 page가 생성함 
             // 해당 현재 함수 checkMail Info 수행시 무조건적으로 page 생서하는 라인 수정 필요함 
             console.log(chalk.redBright(`Unclassified Mail [현재는 IMS 이슈 메일만 분류 되어있음]`));
-
     }
-
     isEnter =true
 }
-
-/**
+/** 
  * 
  *  ----------------------------------------------------------------------------------------------------------------------
  * 
@@ -205,14 +191,10 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
  *  
  *  -----------------------------------------------------------------------------------------------------------------------
  */
-
 const mailMonitoring = async(page,browser)=>{
-
     console.time(`[mailMonitoring] executed         ....`);
-    
     /* 
     axios not used (got)
-    
     await axios.get(`https://mail.tmax.co.kr/?_task=mail&_mbox=INBOX`)
         .then((response)=>{
             const html = response.data;
@@ -224,53 +206,39 @@ const mailMonitoring = async(page,browser)=>{
             console.log(error);
          })
     */
-
     // current Mail page -> get All Mail List
     let readList = await page.$$eval(('td.subject'), readList => readList.map(ele=>ele.innerText));
     // current Mail page -> get Mail Status
     let unReadList = await page.$$eval(('td.subject'), readList => readList.map(ele=>ele.children[0].title));
-
     /*
-
         mailPage Enter  
         i.   page Evaluate get All Selector which have tr Selector
         ii.  splice(2) => eliminate 제목 .. unnecessary things
         iii. mail_tr_id = []  : it is all id List and Return Promise
-
     */
     let get_trId = await page.evaluate(()=>{
-        
         let origin_tr = document.querySelectorAll('tr');
         let og_tr = Array.from(origin_tr);
         let mail_tr = og_tr.splice(2);
-
         let mail_tr_id = [];
-
         mail_tr.forEach((ele)=>{
             mail_tr_id.push(ele.id);
         })
         return Promise.resolve(mail_tr_id);  
-
     })
-    
     console.log(chalk.yellowBright(`--------------------------------------------------  Current Total Mail List  --------------------------------------------------`));
     console.log(readList);
     console.log(chalk.yellowBright(`--------------------------------------------------  Current Total Mail List  --------------------------------------------------`));
-
     console.log(chalk.cyanBright(`--------------------------------------------------  Detect Mail Status List  -------------------------------------------------`));
     console.log(unReadList);
     console.log(chalk.cyanBright(`--------------------------------------------------  Detect Mail Status List  -------------------------------------------------`));
-    
     // mail Id
     mail_id = await get_trId;
     console.log(chalk.magentaBright(`--------------------------------------------------  Detect Mail Status List  -------------------------------------------------`));
     console.log(mail_id);
     console.log(chalk.magentaBright(`--------------------------------------------------  Detect Mail Status List  -------------------------------------------------`));
-
     //----------------------------------------------------------------------------------------------------------------------
-     
     let completeNotiRandomId = Math.round(Math.random() * 0xffffff).toString(16); // Notification 별로 unique 한 id값 부여 
-
     if(!unReadList.includes(UNREAD)){
 
         let completeOption =  {
@@ -289,7 +257,6 @@ const mailMonitoring = async(page,browser)=>{
 
         createCustomNoti(completeOption, true, completeNotiClickFn);
     }
-
     for(let i = 0 ; i < unReadList.length ; i ++){
         /*
         package issue (notifier onClick do not wrork)
@@ -299,13 +266,9 @@ const mailMonitoring = async(page,browser)=>{
         **
         2.https://github.com/mikaelbr/node-notifier/issues/291#issuecomment-555741924
             -> node-notifer rollback 함
-
         */
-       
         let unReadNotiRandomId = Math.round(Math.random() * 0xffffff).toString(16); // Notification 별로 unique 한 id값 부여 
-
         if(unReadList[i] == '읽지 않음 '){
-
             let unReadOption =  {
                 title: 'Unread Alarm ',
                 w:true,
@@ -325,86 +288,18 @@ const mailMonitoring = async(page,browser)=>{
                 */
                 check_mailInfo(page, options.messageId, options.message , browser);
             }
-            createCustomNoti(unReadOption, true, unReadNotiClickFn);
             /*
-
                 20.11.05
-                notifier 객체를 분기처리 안에서 동일한 객체로 선언했기때문에 
-                다수의 notifier가 생성되었고
-                click콜백 내부에서 page객체 생성이 비정상적으로 발생한 문제 해결 
-        
-            notifier.notify(
-            {
-                title: 'Unread Alarm ',
-                w:true,
-                message: `${readList[i]}`,
-                icon: path.join(__dirname, '/res/images/bell.png'), // Absolute path (doesn't work on balloons)
-                sound: true, // Only Notification Center or Windows Toasters
-                wait: false // Wait with callback, until user action is taken against notification, does not apply to Windows Toasters as they always wait or notify-send as it does not support the wait option
-            },
-            function (err, response) {
-            // Response is response from notification
-                if(err){
-                    console.error(err);
-                    return;
-                }
-                if( response.trim().toLowerCase() === 'activated'){
-                    //clicked   
-                }
-               
-            });
-
-           
-            window notification 클릭 잡는
-            callback이 다수로 불려서 (정확한 원인을 찾지 못함)
-
-            npm i lodash
-
-            lodash 패키지 부른 후 click이벤트 콜백을 한번만 수행하게끔 코드 수정함.
-
-            notifier.on('click',_.debounce((notifierObj,options,event)=>{  // Debounce(_.debounce)
-                console.log(chalk.bgYellowBright('UnRead Mail Clicked '));
-               
-                    읽지 않음 메일의 notification 이 클릭 될때 
-                    check_mailInfo 함수를 호출한다.
-                    인자로는 notification의 message(readList[i])를 넘겨준다.
-                
-               
-                check_mailInfo(options.message,browser);
-            }));
-
-            notifier.on('timeout', function (notifierObject, options) {
-            // Triggers if `wait: true` and notification closes
-              
-            });
+                every alarm -> new Noti (not duplicated)
             */
+            createCustomNoti(unReadOption, true, unReadNotiClickFn);
         }     
         // forwarding한 메일 처리 
         if(unReadList[i] == '전달됨 '){
-            /*
-            notifier.notify(
-            {
-                title: 'Sending Alarm ',
-                message: `${readList[i]}`,
-                icon: path.join(__dirname, 'coulson.jpg'), // Absolute path (doesn't work on balloons)
-                sound: true, // Only Notification Center or Windows Toasters
-                wait: true // Wait with callback, until user action is taken against notification, does not apply to Windows Toasters as they always wait or notify-send as it does not support the wait option
-            },
-            function (err, response) {
-            // Response is response from notification
-            });
-            notifier.on('click',(notifierObj,options,event)=>{
-
-                console.log(chalk.cyanBright('<><><><>e<><><><><><><><><>    Sending Mail Clicked    <><><><><><><><><><><><><>'));
-                //console.log(notifierObj); // Return : window.toaster object 
-                console.log(options); // Return : notifier.notify 의 설정값
-                console.log(event); // Return: empty Object  
-            })
-            */
+           console.log('Forwarding 한 메일')
         }
     }
     console.timeEnd(`[mailMonitoring] executed         ....`);
-
 
 }
 /**
@@ -432,6 +327,7 @@ const mainRunner = async(_headless)=>{
     const browser = await puppeteer.launch({
         headless: headlessMode, 
     });
+
     let i = 0 ;
     while(true){
         /*
@@ -441,7 +337,6 @@ const mainRunner = async(_headless)=>{
         */
         i++;
         const mailPage = await browser.newPage();
-    
         await mailPage.setViewport(
             {
             width : 1920,               
@@ -466,16 +361,6 @@ const mainRunner = async(_headless)=>{
         console.log(chalk.greenBright(figlet.textSync(`** Load Mail List **`,{ width : 110} )));
         
         await mailPage.waitForTimeout(1500);
-        //let format = Date_formatting(); 
-        /*
-        while(true){
-            console.log(`[Polling Count : ${cnt++}  `)
-
-            await mailMonitoring(mailPage,browser);
-            await mailPage.waitForTimeout(MAIL_POLLINGTIME);
-            await mailPage.reload({ waitUntil: ["networkidle0"] });
-        }
-        */
         await mailMonitoring(mailPage,browser);
         await mailPage.waitForTimeout(dev_MAIL_POLLINGTIME);
         //await mailPage.reload({ waitUntil: ["networkidle0"] });
@@ -483,7 +368,6 @@ const mainRunner = async(_headless)=>{
     }   
 }
 /**
- * 
  *  -----------------------------------------------------
  *  @description
  *  <pre>
@@ -508,7 +392,6 @@ inquirer
 		    message: 'You want ScreenShot IMS Page ?',
 		    choices: ['true', 'false'],
         }
-    
     ])
     .then((answers) => {
 	    console.log(chalk.green('[Headless Mode] is :',answers.head));

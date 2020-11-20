@@ -1,5 +1,5 @@
 # workProcessEnhance
-    * Company Mail Server serves mail Service faster than Gmail or Outlook
-    * They not support notification alarm 
+    * Make own mail Alarm Service and get Data from specific page with Healess Chrome using Puppeteer
+    
 
     
