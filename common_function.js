@@ -5,7 +5,38 @@ const _id = `seungsoo_ha`;
 const _pw = `S1s1s1s1!`;
 const __pw = `S1s1s1s1s1!`;
 const got = require('got');
+const fs = require('fs');
 
+
+/**
+ * 
+ *  ----------------------------------------------------------------------------------------------------------------------
+ * 
+ *  @function jsonFileWrite
+ *
+ *  @param rawdata : page_scrapper() -> return value [Object]
+ *  @param data : JSON.strinfigy (fs.writeFile)
+
+ *  @description
+ *  <pre>
+ *      page_scrapper() 에서 가져온
+ *     _getIssuedData 데이터 값을 res/data 에 ims_${imsNumber}.json
+ *      파일을 생성한다.
+ *  </pre>
+ *  
+ *  -----------------------------------------------------------------------------------------------------------------------
+ */
+
+const jsonFileWrite = (rawdata,data)=>{
+    return new Promise((resolve,reject)=>{
+        fs.writeFile(`./res/data/ims_${rawdata.issueBasicInfo.IssueNumber}.json`,data,(err)=>{
+            if(err) reject (err);
+            else resolve(data);
+        });
+
+    })
+
+}
 
 /**
  * 
@@ -65,7 +96,7 @@ const first_execute = async(page,imsNum)=>{
     await page.goto('https://ims.tmaxsoft.com/tody/auth/login.do');
     await page.type('#id',_id,{delay:20});
 
-
+    await page.waitForTimeout('600');
     await page.evaluate(()=>{
         document.querySelector(`body > form > table > tbody > tr > td > table > tbody > tr:nth-child(2) > td:nth-child(1) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > input[type=password]`)
         .select();
@@ -74,6 +105,7 @@ const first_execute = async(page,imsNum)=>{
     await page.keyboard.type(__pw);
 
     const navigation1 = page.waitForNavigation();
+    
     await page.evaluate(()=>{
         document.querySelector(`body > form > table > tbody > tr > td > table > tbody > tr:nth-child(2) > td:nth-child(1) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(3) > input[type=image]`)
         .click();
@@ -84,6 +116,7 @@ const first_execute = async(page,imsNum)=>{
     });
     */
     await navigation1;
+    await page.waitForTimeout('600');
 
     await page.type('#topIssueId',imsNum,{delay:20});
 
@@ -301,5 +334,6 @@ module.exports = {
     createCustomNoti,
     first_execute,
     after_execute,
-    page_scrapper
+    page_scrapper,
+    jsonFileWrite
 }

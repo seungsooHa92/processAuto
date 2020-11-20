@@ -39,8 +39,8 @@ createCustomNoti,
 classifyMail,
 first_execute,
 after_execute,
-page_scrapper
-
+page_scrapper,
+jsonFileWrite
 } = require('./common_function');
 
 const _id = `seungsoo_ha`;
@@ -138,26 +138,33 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
 
                     /* promisify await가 동작하지 않음 */
                     // 1. promise then
-                    // 2. promisify
-                    // 3. async await https://stackoverflow.com/questions/31978347/fs-writefile-in-a-promise-asynchronous-synchronous-stuff
+                    // 2. promisify(TODO)
+                    // 3. async await https://stackoverflow.com/questions/31978347/fs-writefile-in-a-promise-asynchronous-synchronous-stuff (TODO)
 
-                    fs.writeFile(`./res/data/ims_${_getIssueData.issueBasicInfo.IssueNumber}.json`,data,(err)=>{
-                        console.log('something wrong');
-                    });
+                    //1. return new Promise at common_function
 
+                    jsonFileWrite(_getIssueData,data).then((results)=>{
+                        console.log(`[1] json file Write`)
+                    })
                     await got.post('http://192.168.17.36:5000/puppeteer_', {
                         json: {
                             _getIssueData
                         },
                         responseType: 'json'
                     });
+
+
             
                 }
                 else{
                     console.log(chalk.greenBright('***** After first Noti Click ******'));
                     await after_execute(imsPage,_imsNum);
                     let _getIssueData = await page_scrapper(imsPage,imsTargetURL);
-                    console.log('IMS Info Data',_getIssueData);
+
+                    jsonFileWrite(_getIssueData,data).then((results)=>{
+                        console.log(`[1] json file Write`)
+                    })
+                    
                     await got.post('http://192.168.17.36:5000/puppeteer_', {
                         json: {
                             _getIssueData
@@ -275,9 +282,7 @@ const mailMonitoring = async(page,browser)=>{
             wait : true,        
         }
         let completeNotiClickFn = (notifierObj,options,event)=>{
-            //console.log(notifierObj);
-            //console.log(options);
-            //console.log(options.id);
+            //console.log(notifierObj,options,options.id);
             console.log('메일 확인 완료 noti Click');
         }
         // make complete Check Noti
