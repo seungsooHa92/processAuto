@@ -49,7 +49,7 @@ const __pw = `S1s1s1s1s1!`;
 const UNREAD = "읽지 않음 ";
 const SEND = "전달 됨 ";
 let cnt = 0;
-const dev_MAIL_POLLINGTIME = 300*1000; 
+const dev_MAIL_POLLINGTIME = 90*1000; 
 const MAIL_POLLINGTIME = 300*1000;
 
 
@@ -131,12 +131,19 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                     // 2. promisify(TODO)
                     // 3. async await https://stackoverflow.com/questions/31978347/fs-writefile-in-a-promise-asynchronous-synchronous-stuff (TODO)
 
-                    //1. return new Promise at common_function
+                    
+                    console.log(chalk.blue(`[latest Action is]  :${_getIssueData.actions[1]._id}`));
+                    console.log(chalk.blue(`[latest Action is]  :${_getIssueData.actions[1]._text}`));
+                    console.log(chalk.blue(`[latest Action is]  :${_getIssueData.actions[1]._img}`));
 
-                    console.log(chalk.blue(`[latest Action is]  :${_getIssueData.actions[0]}`));
+
+                    //1. return new Promise at common_function
+                    // 현재는 액션들의 text값들과 issue 정보 전체를 json파일로 저장하는데
+                    // img , gif 파일 처리를 어떻게 할지 (common_function)
                     jsonFileWrite(_getIssueData,data).then((results)=>{
                         console.log(`[1] json file Write`)
                     })
+
                     await got.post('http://192.168.17.36:5000/puppeteer_', {
                         json: {
                             _getIssueData

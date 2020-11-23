@@ -210,13 +210,37 @@ const page_scrapper = async(page,url)=>{
 
         let requireIssueInfoObj = new Object(); //action Info Object
 
-        let actionText = [];
+        let actions_Info = [];
         let actionHsitoryInfo = [];
         let issueManageInfo = new Object();
 
+        /*
+        TODO 
+        action contains PNG, gif files 
+        innerText-> innerHTML changed
+        
+        아니 ㅣ씨ㅣㅣㅣㅣ발 innerHTML 성능이 안좋으면 뭐 어쩌라고 씨이이ㅏㄹ바ㅣㄼ
+
+
+        */
+
 
         document.querySelectorAll('[id^="commDescTR_"]').forEach((action)=>{
-            actionText.push(action.innerText);
+
+            let actionObj = new Object();
+            actionObj._id = action.id;
+            actionObj._text = action.innerText;
+            let image_array = [];
+            Array.from(action.children).forEach((ele_)=>{
+                
+                if(ele_.firstChild.currentSrc){
+                   
+                    image_array.push(ele_.firstChild.currentSrc);
+                }
+                actionObj._img = image_array;
+            })            
+
+            actions_Info.push(actionObj);
         })
 
         document.querySelectorAll('[id^="action_"]').forEach((action_info)=>{
@@ -227,11 +251,17 @@ const page_scrapper = async(page,url)=>{
 
         
         trs_array.forEach((tr)=>{
+            /*
+            javascript Property Convention 
+            -> remove Blank, - 
+            ex. `issue Number` cannot be a property 
+
+            */
             let _property = tr.cells[0].innerText.replace(/\s+/g, '').toString();
             issueManageInfo[_property] = tr.cells[1].innerText
         })
 
-        requireIssueInfoObj.actions = actionText;
+        requireIssueInfoObj.actions = actions_Info;
         requireIssueInfoObj.actionHistory = actionHsitoryInfo;
         requireIssueInfoObj.issueBasicInfo = issueManageInfo;
         

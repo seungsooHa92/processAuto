@@ -1,36 +1,18 @@
 const got = require('got');
 
-/* got Package Test
+
 (async()=>{
 
     try{
-        const response = await got('https://www.npmjs.com/package/got');
-        console.log(response.body);
+        const response = await got('https://miro.medium.com/max/600/1*LwGhp5Ln7GT8_rAvBqU1YQ.png');
+		console.log(response.body);
+		
 
     }catch(error){
         console.log(error.response.body);
     }
 
 })();
-*/
-const program = require('commander');
-const inquirer = require('inquirer');
-const chalk = require('chalk');
 
-const main = async()=>{
-
-
-	inquirer.prompt([{
-		type: 'list',
-		name: 'menu',
-		message: 'CLI에 오신것을 환영합니다. 메뉴를 선택하세요.',
-		choices: ['공부 하기', '퀴즈 풀기'],
-	}])
-	.then((answers) => {
-		console.log(chalk.green(answers.menu) + "를 선택하셨습니다.");
-		selected(answers.menu);
-     })
-    console.log('asdfjlaskdfj')
-}
-
-main()
+//https://flaviocopes.com/node-download-image/
+//https://medium.com/harrythegreat/node-js%EC%97%90%EC%84%9C-request-js-%EC%82%AC%EC%9A%A9%ED%95%98%EA%B8%B0-28744c52f68d
