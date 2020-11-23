@@ -6,6 +6,7 @@ const _pw = `S1s1s1s1!`;
 const __pw = `S1s1s1s1s1!`;
 const got = require('got');
 const fs = require('fs');
+const puppeteer = require('puppeteer');
 
 
 /**
@@ -36,6 +37,62 @@ const jsonFileWrite = (rawdata,data)=>{
 
     })
 
+}
+
+/**
+ *  ----------------------------------------------------------------------------------------------------------------------
+ * 
+ *  @function save_pngFile
+ *
+ *  @param  item : 각각의 image array 의 담긴 img src URL
+ *  @param  ele_id : comment_div 의 id
+ *  @param  issueNum : 이슈 번호
+ *  @param  index: loop count
+ *  @param  browser mainRunner에서 부터 전달 받은 browser 객체
+ * 
+ *  <pre>
+ *   
+ *  </pre>
+ *  -----------------------------------------------------------------------------------------------------------------------
+ */
+const save_pngFile = async(item,ele_id,issueNum,index,browser)=>{
+
+    console.log(
+        `[save_pngFile] `
+    )
+    const page = await browser.newPage()
+    let viewSrc = await page.goto(item);
+    fs.writeFile(`./res/data/ims_${issueNum}_${ele_id}_${index}.PNG`,await viewSrc.buffer(),(err)=>{
+            if(err) {
+                return console.log(err);
+            }
+            console.log("The file was saved!");
+    })
+}
+/**
+ *  ----------------------------------------------------------------------------------------------------------------------
+ * 
+ *  @function imageFileWrite
+ *  
+ *  @param image_array : get IssueInfo Object IssueInfoObj.actions.img[]  
+ *  @param ele_id : action's unique ID
+ *  @param issueNum : get Issue #
+ *  @param browser : pass browser
+ * 
+ *  @description
+ *  <pre>
+ *   
+ *  </pre>
+ *  -----------------------------------------------------------------------------------------------------------------------
+ */
+const imageFileWrite = async(image_array,ele_id,issueNum,browser)=>{
+    console.log(
+        `[imageFileWrite] `
+    )
+    image_array.forEach(async(item,index)=>{
+    
+        await save_pngFile(item,ele_id,issueNum,index,browser);
+    })
 }
 
 /**
@@ -213,18 +270,12 @@ const page_scrapper = async(page,url)=>{
         let actions_Info = [];
         let actionHsitoryInfo = [];
         let issueManageInfo = new Object();
-
         /*
         TODO 
         action contains PNG, gif files 
         innerText-> innerHTML changed
-        
         아니 ㅣ씨ㅣㅣㅣㅣ발 innerHTML 성능이 안좋으면 뭐 어쩌라고 씨이이ㅏㄹ바ㅣㄼ
-
-
         */
-
-
         document.querySelectorAll('[id^="commDescTR_"]').forEach((action)=>{
 
             let actionObj = new Object();
@@ -353,7 +404,6 @@ const classifyMail = async(content,browser)=>{
                 await imsPage.goto(`https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=${_imsNum}`);
                 
             } 
-
         default:
             console.log(`Unclassified Mail [현재는 IMS 이슈 메일만 분류 되어있음]`);
     }
@@ -365,5 +415,6 @@ module.exports = {
     first_execute,
     after_execute,
     page_scrapper,
-    jsonFileWrite
+    jsonFileWrite,
+    imageFileWrite,
 }

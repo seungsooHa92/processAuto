@@ -40,7 +40,8 @@ classifyMail,
 first_execute,
 after_execute,
 page_scrapper,
-jsonFileWrite
+jsonFileWrite,
+imageFileWrite
 } = require('./common_function');
 
 const _id = `seungsoo_ha`;
@@ -132,18 +133,22 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                     // 3. async await https://stackoverflow.com/questions/31978347/fs-writefile-in-a-promise-asynchronous-synchronous-stuff (TODO)
 
                     
-                    console.log(chalk.blue(`[latest Action is]  :${_getIssueData.actions[1]._id}`));
-                    console.log(chalk.blue(`[latest Action is]  :${_getIssueData.actions[1]._text}`));
-                    console.log(chalk.blue(`[latest Action is]  :${_getIssueData.actions[1]._img}`));
-
+                    console.log(chalk.blue(`[latest Action is]  :${_getIssueData.actions[0]._text}`));
 
                     //1. return new Promise at common_function
                     // 현재는 액션들의 text값들과 issue 정보 전체를 json파일로 저장하는데
                     // img , gif 파일 처리를 어떻게 할지 (common_function)
                     jsonFileWrite(_getIssueData,data).then((results)=>{
                         console.log(`[1] json file Write`)
-                    })
+                    });
 
+                    // img 파일이 있는 액션들만 image 파일 따로 저장함
+                    _getIssueData.actions.forEach( async(ele)=>{
+                        if(ele._img.length > 0){
+                            await imageFileWrite(ele._img,ele._id,_getIssueData.issueBasicInfo.IssueNumber,browser);
+                        }
+                    });
+                    
                     await got.post('http://192.168.17.36:5000/puppeteer_', {
                         json: {
                             _getIssueData
