@@ -86,11 +86,12 @@ const save_pngFile = async(item,ele_id,issueNum,index,browser)=>{
  *  -----------------------------------------------------------------------------------------------------------------------
  */
 const imageFileWrite = async(image_array,ele_id,issueNum,browser)=>{
+
     console.log(
         `[imageFileWrite] `
     )
     image_array.forEach(async(item,index)=>{
-    
+        
         await save_pngFile(item,ele_id,issueNum,index,browser);
     })
 }
@@ -212,7 +213,65 @@ const after_execute = async(page,imsNum)=>{
 
 }
 
+/**
+ * 
+ *  ----------------------------------------------------------------------------------------------------------------------
+ * 
+ *  @function traverseIMSPage
+ *
+ *  @param  imsPage
+ *  @param  imsTargetURL
+ *  @param  browser : mainRunner > check_mailInfo > 초기 생성한 browser 
+ *  @description
+ *  <pre>
+ *      i. Mail Notification Click
+ *      ii. 확인해야할 IMS 메일이면 
+ *      iii. 해당 이슈 페이지 정보를 얻기위해 puppeteer page 객체 생성후 (imsPage)
+ *      iv.  해당 URL 로 접속 imsPage.goto(imsTargetURL)
+ *              
+ *      -> imsPage, imsTargetURL index.js > check_mailInfo 에서 생성함
+ * 
+ *  </pre>
+ *  
+ *  -----------------------------------------------------------------------------------------------------------------------
+ */
+const traverseIMSPage = async(imsPage,imsTargetURL,browser)=>{
 
+    let _getIssueData = await page_scrapper(imsPage,imsTargetURL);
+
+    console.log('IMS Info Data',_getIssueData);
+    let data = JSON.stringify(_getIssueData);
+    /* promisify await가 동작하지 않음 */
+    // 1. promise then
+    // 2. promisify(TODO)
+    // 3. async await https://stackoverflow.com/questions/31978347/fs-writefile-in-a-promise-asynchronous-synchronous-stuff (TODO)
+
+    
+    console.log(chalk.blue(`[latest Action is]  :${_getIssueData.actions[0]._text}`));
+
+    //1. return new Promise at common_function
+    // 현재는 액션들의 text값들과 issue 정보 전체를 json파일로 저장하는데
+    // img , gif 파일 처리를 어떻게 할지 (common_function)
+    jsonFileWrite(_getIssueData,data).then((results)=>{
+        console.log(`[1] json file Write`)
+    });
+
+    // img 파일이 있는 액션들만 image 파일 따로 저장함
+    _getIssueData.actions.forEach( async(ele)=>{
+        if(ele._img.length > 0){
+            await imageFileWrite(ele._img,ele._id,_getIssueData.issueBasicInfo.IssueNumber,browser);
+        }
+    });
+    
+    await got.post('http://192.168.17.36:5000/puppeteer_', {
+        json: {
+            _getIssueData
+        },
+        responseType: 'json'
+    });
+
+
+}
 /**
  * 
  *  ----------------------------------------------------------------------------------------------------------------------
@@ -232,37 +291,6 @@ const after_execute = async(page,imsNum)=>{
  */
 const page_scrapper = async(page,url)=>{
 
-    /*
-    const getHeihgts_Data = await page.evaluate(()=>{
-
-        let scrollHeight_ = document.body.scrollHeight;
-        return Promise.resolve(scrollHeight_)
-
-    })
-
-    _heightsInfo = await getHeihgts_Data;
-    console.log('***',_heightsInfo);
-    await page.setViewport( 
-        {//set Page viewPort
-        width : 1920,               
-        height : _heightsInfo+1000,               
-    })
-    
-    await page.waitForTimeout('400');
-    */
-    /*
-    try {
-        const response = await got(url);
-        console.log(response.body);
-        const $ = cheerio.load(response.body);
-        console.log($('<td class=tilte></td>').data())
-
-    } catch (error) {
-        console.log(error.response.body);
-        //=> 'Internal server error ...'
-    }
-    */
-
     let get_issueInfoTable = await page.evaluate(()=>{
 
         let requireIssueInfoObj = new Object(); //action Info Object
@@ -274,7 +302,7 @@ const page_scrapper = async(page,url)=>{
         TODO 
         action contains PNG, gif files 
         innerText-> innerHTML changed
-        아니 ㅣ씨ㅣㅣㅣㅣ발 innerHTML 성능이 안좋으면 뭐 어쩌라고 씨이이ㅏㄹ바ㅣㄼ
+     
         */
         document.querySelectorAll('[id^="commDescTR_"]').forEach((action)=>{
 
@@ -282,25 +310,20 @@ const page_scrapper = async(page,url)=>{
             actionObj._id = action.id;
             actionObj._text = action.innerText;
             let image_array = [];
+
+            // action 에 포함되어있는 gif, png 파일을 array 형태로 따로 저장
             Array.from(action.children).forEach((ele_)=>{
-                
                 if(ele_.firstChild.currentSrc){
-                   
                     image_array.push(ele_.firstChild.currentSrc);
                 }
                 actionObj._img = image_array;
             })            
-
             actions_Info.push(actionObj);
         })
-
         document.querySelectorAll('[id^="action_"]').forEach((action_info)=>{
             actionHsitoryInfo.push(action_info.innerText);
         })
-    
         let trs_array = Array.from(document.querySelector(`#issueInfoTable > tbody > tr > td:nth-child(1) > table > tbody`).children);
-
-        
         trs_array.forEach((tr)=>{
             /*
             javascript Property Convention 
@@ -318,13 +341,9 @@ const page_scrapper = async(page,url)=>{
         
         return Promise.resolve(requireIssueInfoObj)
     })
-
-    
     getIssueData = await get_issueInfoTable;
     //console.log(getIssueData);
-  
     return Promise.resolve(getIssueData)
-
 
 }
 
@@ -417,4 +436,5 @@ module.exports = {
     page_scrapper,
     jsonFileWrite,
     imageFileWrite,
+    traverseIMSPage
 }

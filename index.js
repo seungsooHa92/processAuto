@@ -41,7 +41,8 @@ first_execute,
 after_execute,
 page_scrapper,
 jsonFileWrite,
-imageFileWrite
+imageFileWrite,
+traverseIMSPage
 } = require('./common_function');
 
 const _id = `seungsoo_ha`;
@@ -79,11 +80,7 @@ let isEnter = false
  *  -----------------------------------------------------------------------------------------------------------------------
  */
 const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
-    /*
-    message format
-    '[IMS] No.243229 Action Registered : [NH투자증권] PromanagerOPS 느린 현상 개선 요청 (이슈분리:240190)',
-    '[어린이집 공지] 2021년도 Tmax 사랑 어린이집 원아모집 안내',
-    */
+
     console.log(chalk.yellowBright('@@@@@@@@@@@   Mail Info   @@@@@@@@@@@'));
     console.log(chalk.magentaBright(`<< check_mailInfo >> : ${content}`));
     console.log(chalk.magentaBright(`<< check_mailID Info >> : ${mailId}`));
@@ -93,16 +90,18 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
     let class_flag = splitted[0]; // IMS
     let class_flag2 = splitted[1]; // No.123456
     let _No = class_flag2.split('.')[0]; // No ---
+
+    let _status = splitted[2];
+    /*
+
+    Registered -> New Issue Register;
+    Action Registered -> Action is Submitted;
+    Action Modified 
+    Status Changed -> only Status changed
+    */
     let _imsNum = class_flag2.split('.')[1];  // Issue Number
     let imsTargetURL = `https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=${_imsNum}`
-    /* 
-    mailPage 에서 안 읽은 메일함 리스트를 클릭하려고 했음
-    await page.click(`#${mailId}`,{clickCount:5 }).then((result)=>{
-        console.log('mail page double Clicked')
-    });    
-    await page.waitForSelector('#messagetoolbar');
-    await page.waitForTimeout(500);
-   */
+   
     switch(class_flag){
 
         case "[IMS]":
@@ -115,67 +114,23 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                     width : 1920,               
                     height : 1080,               
                 });
-                /*
-                TODO
-                    issue data post To Server(through got package);
-                    if else -> need to change Clean Code
-                */
                 if(!isEnter){
                     console.log(chalk.yellowBright('***** first Noti Click *****'));
                     await first_execute(imsPage,_imsNum);
-                    let _getIssueData = await page_scrapper(imsPage,imsTargetURL);
-
-                    console.log('IMS Info Data',_getIssueData);
-                    let data = JSON.stringify(_getIssueData);
-                    /* promisify await가 동작하지 않음 */
-                    // 1. promise then
-                    // 2. promisify(TODO)
-                    // 3. async await https://stackoverflow.com/questions/31978347/fs-writefile-in-a-promise-asynchronous-synchronous-stuff (TODO)
-
-                    
-                    console.log(chalk.blue(`[latest Action is]  :${_getIssueData.actions[0]._text}`));
-
-                    //1. return new Promise at common_function
-                    // 현재는 액션들의 text값들과 issue 정보 전체를 json파일로 저장하는데
-                    // img , gif 파일 처리를 어떻게 할지 (common_function)
-                    jsonFileWrite(_getIssueData,data).then((results)=>{
-                        console.log(`[1] json file Write`)
-                    });
-
-                    // img 파일이 있는 액션들만 image 파일 따로 저장함
-                    _getIssueData.actions.forEach( async(ele)=>{
-                        if(ele._img.length > 0){
-                            await imageFileWrite(ele._img,ele._id,_getIssueData.issueBasicInfo.IssueNumber,browser);
-                        }
-                    });
-                    
-                    await got.post('http://192.168.17.36:5000/puppeteer_', {
-                        json: {
-                            _getIssueData
-                        },
-                        responseType: 'json'
-                    });
-            
+                    await traverseIMSPage(imsPage,imsTargetURL,browser);
                 }
                 else{
                     console.log(chalk.greenBright('***** After first Noti Click ******'));
                     await after_execute(imsPage,_imsNum);
-                    let _getIssueData = await page_scrapper(imsPage,imsTargetURL);
-                    let data = JSON.stringify(_getIssueData);
-                    console.log(chalk.blue(`[latest Action is]  :${_getIssueData.actions[0]}`))
-
-                    jsonFileWrite(_getIssueData,data).then((results)=>{
-                        console.log(`[1] json file Write`)
-                    })
-
-                    await got.post('http://192.168.17.36:5000/puppeteer_', {
-                        json: {
-                            _getIssueData
-                        },
-                        responseType: 'json'
-                    });
+                    await traverseIMSPage(imsPage,imsTargetURL,browser);
                 }
             } 
+            break
+            
+        case "오늘의":
+            console.log('누가 결혼 하든 말든~')
+
+
             break
         default:
             // 현재 버전에서는 IMS 메일이 아닌 다른 noti 클릭시 빈 page가 생성함 
@@ -205,19 +160,7 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
  */
 const mailMonitoring = async(page,browser)=>{
     console.time(`[mailMonitoring] executed         ....`);
-    /* 
-    axios not used (got)
-    await axios.get(`https://mail.tmax.co.kr/?_task=mail&_mbox=INBOX`)
-        .then((response)=>{
-            const html = response.data;
-            const $ = cheerio.load(html);
-            const mailSubject = $(` td.subject > a `);
-            console.log(mailSubject);
-        })
-        .catch((error)=>{
-            console.log(error);
-         })
-    */
+    
     // current Mail page -> get All Mail List
     let readList = await page.$$eval(('td.subject'), readList => readList.map(ele=>ele.innerText));
     // current Mail page -> get Mail Status
