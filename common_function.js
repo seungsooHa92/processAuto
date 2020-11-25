@@ -262,7 +262,6 @@ const traverseIMSPage = async(imsPage,imsTargetURL,browser)=>{
             await imageFileWrite(ele._img,ele._id,_getIssueData.issueBasicInfo.IssueNumber,browser);
         }
     });
-    
     await got.post('http://192.168.17.36:5000/puppeteer_', {
         json: {
             _getIssueData
