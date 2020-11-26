@@ -268,13 +268,10 @@ const traverseIMSPage = async(imsPage,imsTargetURL,browser)=>{
         },
         responseType: 'json'
     });
-
-
 }
 /**
  * 
  *  ----------------------------------------------------------------------------------------------------------------------
- * 
  *  @function page_scrapper
  *
  *  @param page:  Page 객체 -> 해당 함수에서는 imsPage 역할 
@@ -352,27 +349,27 @@ const page_scrapper = async(page,url)=>{
  * 
  *  ----------------------------------------------------------------------------------------------------------------------
  *  Not Used 
- *  @function checkMail
+ *  @function handle_newIssue
  *
- *  @param content:  issue 내용을 담아올 content
- *  @param browser:  브라우저 객체 
+ *  @param imsPage
+ *  @param 
  *
  *  @description
  *  <pre>
- *      mail 함에서 새로운 메일 내용 확인후 mail 메인 화면으로 돌아오는 함수
+ *    신규이슈가 등록됐을때 
+ *    우선 reporter 가 다른사람이어야함
  *  </pre>
  *  
  *  -----------------------------------------------------------------------------------------------------------------------
  */
 
-const checkMail = async(browser)=>{
+const handle_newIssue = async(imsPage)=>{
 
-    const detailMailPage = await browser.newPage();
-    await detailMailPage.setViewport({//set Page viewPort
-                        width: 1920,
-                        height: 1080,
-                        deviceScaleFactor: 1,
-        });
+    console.log('handle_newISsue')
+
+    await imsPage.$(`#activityTD`).then((result)=>{
+        result.click();
+    })
 
 }
 /**
@@ -435,5 +432,6 @@ module.exports = {
     page_scrapper,
     jsonFileWrite,
     imageFileWrite,
-    traverseIMSPage
+    traverseIMSPage,
+    handle_newIssue
 }

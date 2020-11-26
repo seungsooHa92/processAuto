@@ -42,7 +42,8 @@ after_execute,
 page_scrapper,
 jsonFileWrite,
 imageFileWrite,
-traverseIMSPage
+traverseIMSPage,
+handle_newIssue
 } = require('./common_function');
 
 const _id = `seungsoo_ha`;
@@ -114,23 +115,47 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                     width : 1920,               
                     height : 1080,               
                 });
-                if(!isEnter){
-                    console.log(chalk.yellowBright('***** first Noti Click *****'));
-                    await first_execute(imsPage,_imsNum);
-                    await traverseIMSPage(imsPage,imsTargetURL,browser);
+                if(_status === 'Registered'){// New Issue Registered
+                    console.log('New Issue Registered!!');
+                    
+                    /*
+                    TODO 
+                    ******* New Issue Registered
+
+                    1. check whether it is first connection to IMS if(!isEnter){} else{}
+                    then
+                    2. handle_newIssue
+                    */ 
+                    if(!isEnter){
+                        console.log(chalk.yellowBright('***** [New Issue Registered] first Noti Click *****'));
+                        await first_execute(imsPage,_imsNum);
+                        await handle_newIssue(imsPage); 
+                       
+                    }
+                    else{
+                        console.log(chalk.greenBright('***** [New Issue Registered] After first Noti Click ******'));
+                        await after_execute(imsPage,_imsNum);
+                        await handle_newIssue(imsPage); 
+                       
+                    }
                 }
                 else{
-                    console.log(chalk.greenBright('***** After first Noti Click ******'));
-                    await after_execute(imsPage,_imsNum);
-                    await traverseIMSPage(imsPage,imsTargetURL,browser);
+                    // Already Handled Issue
+                    if(!isEnter){
+                        console.log(chalk.yellowBright('***** first Noti Click *****'));
+                        await first_execute(imsPage,_imsNum);
+                        await traverseIMSPage(imsPage,imsTargetURL,browser);
+                    }
+                    else{
+                        console.log(chalk.greenBright('***** After first Noti Click ******'));
+                        await after_execute(imsPage,_imsNum);
+                        await traverseIMSPage(imsPage,imsTargetURL,browser);
+                    }
                 }
             } 
             break
-            
         case "오늘의":
             console.log('누가 결혼 하든 말든~')
-
-
             break
         default:
             // 현재 버전에서는 IMS 메일이 아닌 다른 noti 클릭시 빈 page가 생성함 
@@ -142,7 +167,6 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
 /** 
  * 
  *  ----------------------------------------------------------------------------------------------------------------------
- * 
  *  @function mailMonitoring
  *  @param page: mainRunner에서 생성한 mailPage를 받아온다.
  *  @param browser: mainRunner에서 생성된 puppeteer browser 객체를 받아옴.
@@ -299,7 +323,6 @@ const mainRunner = async(_headless)=>{
             deviceScaleFactor: 1,
             }    
         );
-      
         //await mailPage._client.send('Emulation.clearDeviceMetricsOverride');
         await mailPage.goto('https://mail.tmax.co.kr/');
 
