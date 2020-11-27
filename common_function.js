@@ -1,9 +1,7 @@
 const nn = require('node-notifier');
 const WindowsToaster = require('node-notifier/notifiers/toaster');
 const chalk = require('chalk');
-const _id = `seungsoo_ha`;
-const _pw = `S1s1s1s1!`;
-const __pw = `S1s1s1s1s1!`;
+// Account Info 
 const got = require('got');
 const fs = require('fs');
 const puppeteer = require('puppeteer');
@@ -362,7 +360,6 @@ const page_scrapper = async(page,url)=>{
  *  
  *  -----------------------------------------------------------------------------------------------------------------------
  */
-
 const handle_newIssue = async(imsPage)=>{
 
     console.log('handle_newISsue')
