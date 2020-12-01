@@ -1,13 +1,10 @@
 const nn = require('node-notifier');
 const WindowsToaster = require('node-notifier/notifiers/toaster');
 const chalk = require('chalk');
-const _id = `seungsoo_ha`;
-const _pw = `S1s1s1s1!`;
-const __pw = `S1s1s1s1s1!`;
 const got = require('got');
 const fs = require('fs');
 const puppeteer = require('puppeteer');
-
+const {accountInfo} = require('./credential_data');
 
 /**
  * 
@@ -158,7 +155,7 @@ const first_execute = async(page,imsNum)=>{
     reference : https://github.com/puppeteer/puppeteer/issues/441
     */  
     await page.goto('https://ims.tmaxsoft.com/tody/auth/login.do');
-    await page.type('#id',_id,{delay:20});
+    await page.type('#id',accountInfo._id,{delay:20});
 
     await page.waitForTimeout('600');
     await page.evaluate(()=>{
@@ -166,7 +163,7 @@ const first_execute = async(page,imsNum)=>{
         .select();
     })
 
-    await page.keyboard.type(__pw);
+    await page.keyboard.type(accountInfo.__pw);
 
     const navigation1 = page.waitForNavigation();
     
