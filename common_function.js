@@ -1,7 +1,9 @@
 const nn = require('node-notifier');
 const WindowsToaster = require('node-notifier/notifiers/toaster');
 const chalk = require('chalk');
-// Account Info 
+const _id = `seungsoo_ha`;
+const _pw = `S1s1s1s1!`;
+const __pw = `S1s1s1s1s1!`;
 const got = require('got');
 const fs = require('fs');
 const puppeteer = require('puppeteer');
@@ -42,11 +44,11 @@ const jsonFileWrite = (rawdata,data)=>{
  * 
  *  @function save_pngFile
  *
- *  @param  item : 각각의 image array 의 담긴 img src URL
+ *  @param  item : image array [img src URL]
  *  @param  ele_id : comment_div 의 id
- *  @param  issueNum : 이슈 번호
+ *  @param  issueNum : Issue Number
  *  @param  index: loop count
- *  @param  browser mainRunner에서 부터 전달 받은 browser 객체
+ *  @param  browser browser that created in mainRunner
  * 
  *  <pre>
  *   
@@ -58,7 +60,13 @@ const save_pngFile = async(item,ele_id,issueNum,index,browser)=>{
     console.log(
         `[save_pngFile] `
     )
-    const page = await browser.newPage()
+    const page = await browser.newPage();
+    /* 
+        page goto image file URL 
+
+        item -> url
+        ** await viewSrc.buffer()
+    */ 
     let viewSrc = await page.goto(item);
     fs.writeFile(`./res/data/ims_${issueNum}_${ele_id}_${index}.PNG`,await viewSrc.buffer(),(err)=>{
             if(err) {

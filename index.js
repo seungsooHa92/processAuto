@@ -52,23 +52,21 @@ const __pw = `S1s1s1s1s1!`;
 const UNREAD = "읽지 않음 ";
 const SEND = "전달 됨 ";
 let cnt = 0;
-const dev_MAIL_POLLINGTIME = 90*1000; 
+const dev_MAIL_POLLINGTIME = 270*1000; 
 const MAIL_POLLINGTIME = 300*1000;
 
 
-
 let isEnter = false
-
 /**
  * 
  *  ----------------------------------------------------------------------------------------------------------------------
  * 
  *  @function check_mailInfo
  *
- *  @param page: mailPage를 받아옴
- *  @param content: 안읽은 메일 알람 notification 클릭시 받아오는 메시지 값 
- *  @param browser: mainRunner에서 생성된 puppeteer browser 객체를 
-                    받아옴.
+ *  @param page: page = mailPage
+ *  @param content: unReadMail Noti Click -> get Information of Mail (Notification Object[optiions ]...) 
+ *  @param browser: browser that created in mainRunner
+                    
  *  @param 
 
  *  @description
