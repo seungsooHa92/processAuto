@@ -356,9 +356,14 @@ const page_scrapper = async(page,url)=>{
  *  @param 
  *
  *  @description
+ * 
  *  <pre>
- *    신규이슈가 등록됐을때 
- *    우선 reporter 가 다른사람이어야함
+ *    case1. reporter === me
+ *          -> already open <status: OPEN>
+ * 
+ *    case2  reporter !== me
+ *          -> need to be opened <status: NEW>
+ * 
  *  </pre>
  *  
  *  -----------------------------------------------------------------------------------------------------------------------

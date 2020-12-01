@@ -27,6 +27,7 @@ const {
 start_prompt,
 Date_formatting
 } = require('./default_setting');
+const {accountInfo} = require('./credential_data');
 
 const {
 emptyFlag,
@@ -46,9 +47,6 @@ traverseIMSPage,
 handle_newIssue
 } = require('./common_function');
 
-const _id = `seungsoo_ha`;
-const _pw = `S1s1s1s1!`;
-const __pw = `S1s1s1s1s1!`;
 const UNREAD = "읽지 않음 ";
 const SEND = "전달 됨 ";
 let cnt = 0;
@@ -115,7 +113,7 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                 });
                 if(_status === 'Registered'){// New Issue Registered
                     console.log('New Issue Registered!!');
-                            
+
                     /*
                     TODO 
                     ******* New Issue Registered
@@ -327,8 +325,8 @@ const mainRunner = async(_headless)=>{
 
         if(i == 1){
             // first enter -> login 
-            await mailPage.type('#rcmloginuser',_id,{delay:20});
-            await mailPage.type('#rcmloginpwd',_pw,{delay:20});
+            await mailPage.type('#rcmloginuser',accountInfo._id,{delay:20});
+            await mailPage.type('#rcmloginpwd',accountInfo._pw,{delay:20});
             await mailPage.$(`#rcmloginsubmit`).then((result)=>{
                 result.click();
             });

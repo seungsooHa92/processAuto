@@ -92,33 +92,50 @@ const _issueRegister = async()=>{
     await registerPage.waitForTimeout('1000');
     
     // Module ComboBox (dropDown )
+    
     /*
-    ** important
+    #important
     handle_alert -> callback
     callback must be precedent!
     */
+
     await handle_alert(registerPage);
+    
+    /* 
+    the reson Why handle navigation
+    when change the issue module
+    cause page navigation 
+        -> using page.waitForNavigation(), await navigation
+    
+    (maybe same situation at SPA, this problem is out of consideration ..? )
+    */ 
 
     const navigation3 = registerPage.waitForNavigation();
     await registerPage.select('#mainModuleCode','048');
     await navigation3;
+
     await registerPage.waitForTimeout('600');
+      
+    /*
+    part of page.evaluate()
+    using window scroll
 
+    #TODO
+    
+    sleep function ...
+    
+    */
     await registerPage.evaluate(async()=>{
-
         const _sleep = async()=>{
             return new Promise((resolve)=>{
                 setTimeout((resolve)=>{return resolve},1000);
             })
         }
- 
         for(let y = 0 ; y < 10 ; y++){
             window.scrollTo(0,150*y);
             await _sleep();
         }
         window.scrollTo(600,150*9);
-
     })
-    
 }
 _issueRegister();
