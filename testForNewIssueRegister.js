@@ -83,7 +83,7 @@ const _issueRegister = async()=>{
 
     
     let timeStamp = yymmddhhmmss(new Date());
-    let title = `[QA_used] Work procee Automation Issue ${timeStamp}`;
+    let title = `[QA_used] Work process Automation Issue ${timeStamp}`;
 
     // 1. focus title Area
     await registerPage.click('#titleId',(result)=>{console.log('titleId clicked')})
@@ -126,16 +126,41 @@ const _issueRegister = async()=>{
     
     */
     await registerPage.evaluate(async()=>{
+        /*
+        
+        keep in mind 
+        when operate page.evaluate() 
+
+        Main Js process(Node.js) run node env.
+
+        but output? result shown in target browser not local terminal!
+        
+        */
         const _sleep = async()=>{
             return new Promise((resolve)=>{
-                setTimeout((resolve)=>{return resolve},1000);
+                setTimeout(resolve,200);
             })
         }
-        for(let y = 0 ; y < 10 ; y++){
+        const _write_issueDetail = ()=>{
+
+            // TODOTODOTODOTODO
+            // Shit THe Fuck 이죠  issue detail 영역 태그가 iframe이죠  ㄴOㄱ
+            // 시발 시발 시발 시발 시발 시발 시발 시발 시발 시발 시발 시발 시발 시발
+            // selector 다시 잡아야함 시발시발시발시발시발시발시발
+            
+            let _body = document.querySelector('body');
+            _body.innerText = "ke ke ke ke ke ke "
+
+
+        }
+        for(let y = 0 ; y < 15 ; y++){
             window.scrollTo(0,150*y);
             await _sleep();
+            if(y === 750){
+                _write_issueDetail();
+            }
         }
-        window.scrollTo(600,150*9);
+        window.scrollTo(600,2100);
     })
 }
 _issueRegister();
