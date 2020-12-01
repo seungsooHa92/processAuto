@@ -115,7 +115,7 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                 });
                 if(_status === 'Registered'){// New Issue Registered
                     console.log('New Issue Registered!!');
-                    
+                            
                     /*
                     TODO 
                     ******* New Issue Registered
@@ -153,8 +153,9 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
             } 
             break
         case "오늘의":
-            console.log('누가 결혼 하든 말든~')
+            console.log('IT news')
             break
+
         default:
             // 현재 버전에서는 IMS 메일이 아닌 다른 noti 클릭시 빈 page가 생성함 
             // 해당 현재 함수 checkMail Info 수행시 무조건적으로 page 생서하는 라인 수정 필요함 
