@@ -1,5 +1,6 @@
 const {accountInfo} = require('./credential_data');
 const puppeteer = require('puppeteer');
+const inquirer = require('inquirer');
 
 /*
 for Time Setting
@@ -44,6 +45,22 @@ const handle_alert = async(page)=>{
     }); 
 
 }
+/**
+ * 
+ *  ----------------------------------------------------------------------------------------------------------------------
+ * 
+ *  @function handle_alert
+ *
+ *  @param page: _issueRegister 에서 받아온 page 객체 
+ *  @description
+ *  <pre>
+ *      Before alert pop up appear
+ *      handle alert accept operation 
+ *  </pre>
+ *  
+ *  -----------------------------------------------------------------------------------------------------------------------
+ */
+
 const _issueRegister = async()=>{
 
     const browser = await puppeteer.launch({
@@ -141,26 +158,53 @@ const _issueRegister = async()=>{
                 setTimeout(resolve,200);
             })
         }
-        const _write_issueDetail = ()=>{
-
-            // TODOTODOTODOTODO
-            // Shit THe Fuck 이죠  issue detail 영역 태그가 iframe이죠  ㄴOㄱ
-            // 시발 시발 시발 시발 시발 시발 시발 시발 시발 시발 시발 시발 시발 시발
-            // selector 다시 잡아야함 시발시발시발시발시발시발시발
-            
-            let _body = document.querySelector('body');
-            _body.innerText = "ke ke ke ke ke ke "
-
-
-        }
+     
         for(let y = 0 ; y < 15 ; y++){
+          
             window.scrollTo(0,150*y);
-            await _sleep();
-            if(y === 750){
-                _write_issueDetail();
+            if(y == 5){
+               
+                let _iframe = document.querySelector('[id^="xfeDesignFrame_"]');
+                _iframe.contentDocument.body.innerText = 'issue detail';
+
             }
+            await _sleep();
+            
         }
         window.scrollTo(600,2100);
+
+
     })
+    
+    inquirer
+    .prompt([
+        {
+		    type: 'list',
+		    name: 'go',
+		    message: 'Do you want really Issue up ?',
+		    choices: ['true', 'false'],
+        },
+    ])
+    .then((answers) => {
+        
+        
+        let _go = (answers.go === 'true');
+        console.log(_go);
+        if(_go){
+           
+            registerPage.$('#but_save').then((result)=>{
+                result.click();
+            })
+            
+        }
+        else{
+
+        }
+    })
+
+
+    
+
+
 }
 _issueRegister();
