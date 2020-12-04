@@ -194,8 +194,9 @@ const _issueRegister = async()=>{
            
             registerPage.$('#but_save').then((result)=>{
                 result.click();
-            })
-            
+            });
+
+            issueRegister_lastStep(registerPage);
         }
         else{
 
@@ -208,3 +209,27 @@ const _issueRegister = async()=>{
 
 }
 _issueRegister();
+
+const issueRegister_lastStep = async(page)=>{
+
+    let navigation_ = page.waitForNavigation();
+
+    await page.$('#but_save').then((result)=>{
+        result.click();
+    });
+
+    await navigation_;
+
+    let _goRegiSelector = `#body > div:nth-child(2) > table > tbody > tr > td:nth-child(2) > table > tbody > tr:nth-child(2) > td > table > tbody > tr:nth-child(2) > td > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td:nth-child(2) > table > tbody > tr:nth-child(4) > td > a:nth-child(1)`
+    
+    await page.waitForSelector(_goRegiSelector);
+    let navigation = page.waitForNavigation();
+
+    await page.$(_goRegiSelector)
+    .then((result)=>{
+        result.click();
+    })
+
+    await navigation;
+
+}

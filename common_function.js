@@ -216,6 +216,7 @@ const after_execute = async(page,imsNum)=>{
 
 }
 
+
 /**
  * 
  *  ----------------------------------------------------------------------------------------------------------------------
@@ -248,18 +249,19 @@ const traverseIMSPage = async(imsPage,imsTargetURL,browser)=>{
     // 1. promise then
     // 2. promisify(TODO)
     // 3. async await https://stackoverflow.com/questions/31978347/fs-writefile-in-a-promise-asynchronous-synchronous-stuff (TODO)
-
     
     console.log(chalk.blue(`[latest Action is]  :${_getIssueData.actions[0]._text}`));
 
     //1. return new Promise at common_function
-    // 현재는 액션들의 text값들과 issue 정보 전체를 json파일로 저장하는데
-    // img , gif 파일 처리를 어떻게 할지 (common_function)
+
     jsonFileWrite(_getIssueData,data).then((results)=>{
         console.log(`[1] json file Write`)
     });
 
-    // img 파일이 있는 액션들만 image 파일 따로 저장함
+    /*
+    Action that cotains image files(PNG, gif)
+    save as a separate file by imageFileWrite
+    */
     _getIssueData.actions.forEach( async(ele)=>{
         if(ele._img.length > 0){
             await imageFileWrite(ele._img,ele._id,_getIssueData.issueBasicInfo.IssueNumber,browser);
@@ -271,6 +273,8 @@ const traverseIMSPage = async(imsPage,imsTargetURL,browser)=>{
         },
         responseType: 'json'
     });
+
+    
 }
 /**
  * 
@@ -368,13 +372,21 @@ const page_scrapper = async(page,url)=>{
  *  
  *  -----------------------------------------------------------------------------------------------------------------------
  */
+
 const handle_newIssue = async(imsPage)=>{
 
     console.log('handle_newISsue')
 
+    let _getIssueData = await page_scrapper(imsPage,imsTargetURL);
+
+    console.log(_getIssueData);
+
     await imsPage.$(`#activityTD`).then((result)=>{
         result.click();
     })
+
+    await imsPage.select('#opt','value');
+
 
 }
 /**

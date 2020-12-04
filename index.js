@@ -50,7 +50,7 @@ handle_newIssue
 const UNREAD = "읽지 않음 ";
 const SEND = "전달 됨 ";
 let cnt = 0;
-const dev_MAIL_POLLINGTIME = 270*1000; 
+const dev_MAIL_POLLINGTIME = 90*1000; 
 const MAIL_POLLINGTIME = 300*1000;
 
 
