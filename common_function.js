@@ -10,6 +10,78 @@ const {accountInfo} = require('./credential_data');
  * 
  *  ----------------------------------------------------------------------------------------------------------------------
  * 
+ *  @function read_UnreadMail
+ *
+ *  @param page : mailPage that creat in MainRunner
+ *  @param id :
+ *  @description
+ *  <pre>
+ * 
+ * 
+ *  </pre>
+ *  
+ *  -----------------------------------------------------------------------------------------------------------------------
+ */
+
+const read_UnreadMail = async(page,id)=>{
+
+    page_ = page;
+
+    await page_.bringToFront();
+
+    console.log('[Enter] read_UnreadMail Function ___________________________//');
+    console.log('[Check] Right Parameter is Entered ? ');
+    console.log(id);
+    console.log(`${page}`);
+    // first select Selector
+    await page_.waitForTimeout(1000);
+
+    /*
+    click 까진 되는데 dblClick은 동작 안함
+    await page.click(`#${id} > td.subject > a > span`,{clickCount:2}).then((result)=>{
+        console.log(result);
+    })
+    */
+    let getPos = await page_.evaluate(async(id)=>{
+        const _sleep = async()=>{
+            return new Promise((resolve)=>{
+                setTimeout(resolve,200);
+            })
+        }
+        
+        await _sleep(); // 200ms 기다려바 시발
+
+        let mail_ = document.getElementById(`${id}`);
+
+        console.warn('***',mail_);
+
+        let mailPos = mail_.getBoundingClientRect();
+
+        let mailPosObj = {
+            x: mailPos.x,
+            y: mailPos.y,
+            width : mailPos.width,
+            height: mailPos.height
+        }
+        return Promise.resolve(mailPosObj);
+    });
+    let mail_tr_pos = await getPos
+
+    // ButtonClick
+    await page_.mouse.move(mail_tr_pos.x + mail_tr_pos.width/2 , mail_tr_pos.y + mail_tr_pos.height/2 );
+    await page_.waitForTimeout(50);
+    await page_.mouse.down({button:'left'});
+    await page_.waitForTimeout(50);
+    await page_.mouse.up({button:'left'});
+ 
+    await page_.waitForTimeout(500);
+
+
+}
+/**
+ * 
+ *  ----------------------------------------------------------------------------------------------------------------------
+ * 
  *  @function jsonFileWrite
  *
  *  @param rawdata : page_scrapper() -> return value [Object]
@@ -450,5 +522,6 @@ module.exports = {
     jsonFileWrite,
     imageFileWrite,
     traverseIMSPage,
-    handle_newIssue
+    handle_newIssue,
+    read_UnreadMail
 }

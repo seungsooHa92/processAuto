@@ -44,7 +44,8 @@ page_scrapper,
 jsonFileWrite,
 imageFileWrite,
 traverseIMSPage,
-handle_newIssue
+handle_newIssue,
+read_UnreadMail
 } = require('./common_function');
 
 const UNREAD = "읽지 않음 ";
@@ -97,8 +98,7 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
     Status Changed -> only Status changed
     */
     let _imsNum = class_flag2.split('.')[1];  // Issue Number
-    let imsTargetURL = `https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=${_imsNum}`
-   
+    let imsTargetURL = `https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=${_imsNum}`;
     switch(class_flag){
 
         case "[IMS]":
@@ -125,14 +125,14 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                     if(!isEnter){
                         console.log(chalk.yellowBright('***** [New Issue Registered] first Noti Click *****'));
                         await first_execute(imsPage,_imsNum);
-                        await handle_newIssue(imsPage); 
-                       
+                        // TODO
+                        // imsTargetURL 처리 
+                        await handle_newIssue(imsPage,imsTargetURL); 
                     }
                     else{
                         console.log(chalk.greenBright('***** [New Issue Registered] After first Noti Click ******'));
                         await after_execute(imsPage,_imsNum);
-                        await handle_newIssue(imsPage); 
-                       
+                        await handle_newIssue(imsPage,imsTargetURL); 
                     }
                 }
                 else{
@@ -141,11 +141,32 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                         console.log(chalk.yellowBright('***** first Noti Click *****'));
                         await first_execute(imsPage,_imsNum);
                         await traverseIMSPage(imsPage,imsTargetURL,browser);
+                        /*
+                        page: mailPage create in mainRunner
+                        options.messageId : unReadMail_id
+                            -> dbl Click and Read Check
+                        */
+                        // focus mailPage 
+                        await page.bringToFront();
+                        // options을 못가져 오는구나,,,,,
+                        await imsPage.close();
+                        await read_UnreadMail(page,mailId);
+
                     }
                     else{
                         console.log(chalk.greenBright('***** After first Noti Click ******'));
                         await after_execute(imsPage,_imsNum);
                         await traverseIMSPage(imsPage,imsTargetURL,browser);
+                        /*
+                        page: mailPage create in mainRunner
+                        options.messageId : unReadMail_id
+                            -> dbl Click and Read Check
+                        */
+                        // focus mailPage 
+                        console.log(page);
+                        await imsPage.close();
+                
+                        await read_UnreadMail(page,mailId);
                     }
                 }
             } 
@@ -262,13 +283,15 @@ const mailMonitoring = async(page,browser)=>{
                     unRead Mail and it is IMS Mail 
                     go to Ims Page
                 */
-                check_mailInfo(page, options.messageId, options.message , browser);
+                await check_mailInfo(page, options.messageId, options.message , browser);
+
             }
             /*
                 20.11.05
                 every alarm -> new Noti (not duplicated)
             */
             createCustomNoti(unReadOption, true, unReadNotiClickFn);
+            
         }     
         // forwarding한 메일 처리 
         if(unReadList[i] == '전달됨 '){
