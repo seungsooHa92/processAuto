@@ -70,12 +70,17 @@ let isEnter = false
 
  *  @description
  *  <pre>
- *      i. unRead Mail 에 대한 Notification 클릭시 
- *      ii. 해당 메일 내용과 issue 번호를 가진 issue를 IMS에 접속하여 (page객체 생성) 이슈내용 및 history 확인함
+ *      i. Notification Click Event fire(Notification appear with options that contains information of #Issue)
+ *      
+ *      ii. and get The Options
+ *          -> classify Mails
+ *              -> handle Issue Mail
+ *  
  *  </pre>
  *  
  *  -----------------------------------------------------------------------------------------------------------------------
  */
+
 const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
 
     console.log(chalk.yellowBright('@@@@@@@@@@@   Mail Info   @@@@@@@@@@@'));
@@ -143,7 +148,6 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                         */
                         // focus mailPage 
                         await page.bringToFront();
-                        // options을 못가져 오는구나,,,,,
                         await imsPage.close();
                         await read_UnreadMail(page,mailId);
                     
@@ -158,7 +162,7 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                             -> dbl Click and Read Check
                         */
                         // focus mailPage 
-                        console.log(page);
+                        await page.bringToFront();
                         await imsPage.close();
                         await read_UnreadMail(page,mailId);
                         
@@ -169,10 +173,7 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
         case "오늘의":
             console.log('IT news')
             break
-
         default:
-            // 현재 버전에서는 IMS 메일이 아닌 다른 noti 클릭시 빈 page가 생성함 
-            // 해당 현재 함수 checkMail Info 수행시 무조건적으로 page 생서하는 라인 수정 필요함 
             console.log(chalk.redBright(`Unclassified Mail [현재는 IMS 이슈 메일만 분류 되어있음]`));
     }
     isEnter =true
@@ -195,7 +196,8 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
  *  
  *  -----------------------------------------------------------------------------------------------------------------------
  */
-const mailMonitoring = async(page,browser)=>{
+const mailMonitoring = async (page,browser) =>{
+
     console.time(`[mailMonitoring] executed         ....`);
     
     // current Mail page -> get All Mail List
@@ -252,6 +254,7 @@ const mailMonitoring = async(page,browser)=>{
     for(let i = 0 ; i < unReadList.length ; i ++){
         /*
         package issue (notifier onClick do not wrork)
+
         1.https://stackoverflow.com/questions/62193525/how-can-i-listen-click-event-on-windows-notifications
             -> npm i node-powertoast => Windowws.winmd ->  (https://github.com/NodeRT/NodeRT/issues/65#issuecomment-303938757)
         
@@ -259,6 +262,7 @@ const mailMonitoring = async(page,browser)=>{
         2.https://github.com/mikaelbr/node-notifier/issues/291#issuecomment-555741924
             -> node-notifer rollback 함
         */
+       
         let unReadNotiRandomId = Math.round(Math.random() * 0xffffff).toString(16); // Notification 별로 unique 한 id값 부여 
         if(unReadList[i] == '읽지 않음 '){
             let unReadOption =  {
@@ -271,6 +275,7 @@ const mailMonitoring = async(page,browser)=>{
                 sound: true, // Only Notification Center or Windows Toasters
                 wait: false // Wait with callback, until user action is taken against notification, does not apply to Windows Toasters as they always wait or notify-send as it does not support the wait option
             }
+
             let unReadNotiClickFn = async (notifierObj,options,event)=>{
 
                 console.log(chalk.bgYellowBright('UnRead Mail Clicked '));
@@ -288,11 +293,12 @@ const mailMonitoring = async(page,browser)=>{
             createCustomNoti(unReadOption, true, unReadNotiClickFn);
             
         }     
-        // forwarding한 메일 처리 
+        
         if(unReadList[i] == '전달됨 '){
-           console.log('Forwarding 한 메일')
+            console.log('Forwarding 한 메일')
         }
     }
+
     console.timeEnd(`[mailMonitoring] executed         ....`);
 
 }
@@ -312,7 +318,7 @@ const mailMonitoring = async(page,browser)=>{
  *  
  *  -----------------------------------------------------------------------------------------------------------------------
  */
-   
+    
 const mainRunner = async(_headless)=>{
 
     // String to Bool
@@ -325,9 +331,11 @@ const mainRunner = async(_headless)=>{
     let i = 0 ;
     while(true){
         /*
-            mail Server 의 session control 문제 때문에 
-            mailPage를 Close 하고 다시 키는 loop 문으로 문제 해결 
-            해당 프로그램을 계속 실행할시 시간이 어느정도 경과시 session 끊기는 현상 우회 
+            Due to Real Mail Server Session alive time 
+            ->
+            client cannot control Session info
+            build a loop which repaeat close & open the mailPage
+        
         */
         i++;
         const mailPage = await browser.newPage();
@@ -338,7 +346,6 @@ const mainRunner = async(_headless)=>{
             deviceScaleFactor: 1,
             }    
         );
-        //await mailPage._client.send('Emulation.clearDeviceMetricsOverride');
         await mailPage.goto('https://mail.tmax.co.kr/');
 
         if(i == 1){
@@ -349,14 +356,13 @@ const mainRunner = async(_headless)=>{
                 result.click();
             });
             await mailPage.waitForSelector("#rcmbtn107");
-           
+            
         }
         console.log(chalk.greenBright(figlet.textSync(`** Load Mail List **`,{ width : 110} )));
         
         await mailPage.waitForTimeout(1500);
         await mailMonitoring(mailPage,browser);
         await mailPage.waitForTimeout(dev_MAIL_POLLINGTIME);
-        //await mailPage.reload({ waitUntil: ["networkidle0"] });
         await mailPage.close();    
     }   
 }

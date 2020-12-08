@@ -36,17 +36,13 @@ const read_UnreadMail = async(page,id)=>{
     console.log(id);
     console.log(`${page}`);
     // first select Selector
-    await page_.waitForTimeout(1000);
-
+    await page_.waitForTimeout(500);
     /*
     click 까진 되는데 dblClick은 동작 안함
     await page.click(`#${id} > td.subject > a > span`,{clickCount:2}).then((result)=>{
         console.log(result);
     })
     */
-
-
-
     /*
     TODO
     -> When excute `page.evaluate` which has a Parameter
@@ -81,11 +77,15 @@ const read_UnreadMail = async(page,id)=>{
 
         return Promise.resolve(mailPosObj);
     
-    },id);
+    }, id);
 
-    let mail_tr_pos = await getPos
-    // ButtonClick
-    await page_.mouse.move(mail_tr_pos.x + mail_tr_pos.width/2 , mail_tr_pos.y + mail_tr_pos.height/2 );
+    let mail_tr_pos = await getPos;
+    
+    await page_.mouse.move(
+        // mouse move to (center of <tr>)
+        mail_tr_pos.x + mail_tr_pos.width/2,
+        mail_tr_pos.y + mail_tr_pos.height/2 
+        );
     await page_.waitForTimeout(50);
 
     /*
@@ -105,6 +105,8 @@ const read_UnreadMail = async(page,id)=>{
     /*
     TODO
     */
+
+    // back Button Click page back to main mailList url
 
     let navigation_back = page_.waitForNavigation();
     await page_.$('#rcmbtn107').then((result)=>{
@@ -413,7 +415,7 @@ const page_scrapper = async(page,url)=>{
         TODO 
         action contains PNG, gif files 
         innerText-> innerHTML changed
-     
+        
         */
         document.querySelectorAll('[id^="commDescTR_"]').forEach((action)=>{
 
