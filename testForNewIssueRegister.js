@@ -10,6 +10,7 @@ let  yymmdd = (date)=>{
     let dd = date.getDate();
     return [date.getFullYear(), (mm>9 ? '':'0')+mm, (dd>9?'':'0')+dd].join('');
 }
+
 let hhmmss = function(date) {
     var hh = date.getHours();
     var mm = date.getMinutes();
@@ -43,7 +44,6 @@ const handle_alert = async(page)=>{
     page.on('dialog',async (dialog) => {
         await dialog.accept();
     }); 
-
 }
 /**
  * 
@@ -132,7 +132,7 @@ const _issueRegister = async()=>{
     await navigation3;
 
     await registerPage.waitForTimeout('600');
-      
+
     /*
     part of page.evaluate()
     using window scroll

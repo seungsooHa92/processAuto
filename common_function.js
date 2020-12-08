@@ -5,6 +5,8 @@ const got = require('got');
 const fs = require('fs');
 const puppeteer = require('puppeteer');
 const {accountInfo} = require('./credential_data');
+const commander = require('commander');
+const common_dataset = require('./common_dataset');
 
 /**
  * 
@@ -42,40 +44,73 @@ const read_UnreadMail = async(page,id)=>{
         console.log(result);
     })
     */
-    let getPos = await page_.evaluate(async(id)=>{
+
+
+
+    /*
+    TODO
+    -> When excute `page.evaluate` which has a Parameter
+
+        ** page.evaluate((parameter1)=>{},parameter1)
+    
+    */
+    let getPos = await page_.evaluate( async(id)=> {
+
         const _sleep = async()=>{
             return new Promise((resolve)=>{
                 setTimeout(resolve,200);
             })
         }
-        
+
         await _sleep(); // 200ms 기다려바 시발
 
+        console.log(`parameter Check : ${id}`);
         let mail_ = document.getElementById(`${id}`);
 
         console.warn('***',mail_);
-
+        
         let mailPos = mail_.getBoundingClientRect();
 
         let mailPosObj = {
+
             x: mailPos.x,
             y: mailPos.y,
             width : mailPos.width,
             height: mailPos.height
         }
-        return Promise.resolve(mailPosObj);
-    });
-    let mail_tr_pos = await getPos
 
+        return Promise.resolve(mailPosObj);
+    
+    },id);
+
+    let mail_tr_pos = await getPos
     // ButtonClick
     await page_.mouse.move(mail_tr_pos.x + mail_tr_pos.width/2 , mail_tr_pos.y + mail_tr_pos.height/2 );
     await page_.waitForTimeout(50);
+
+    /*
+    Double Click 한느 부분
+    */
+    await page_.mouse.down({button:'left'});
+    await page_.waitForTimeout(50);
+    await page_.mouse.up({button:'left'});
+
     await page_.mouse.down({button:'left'});
     await page_.waitForTimeout(50);
     await page_.mouse.up({button:'left'});
  
     await page_.waitForTimeout(500);
 
+    // 2020.12.08 안읽은 메일 더블클릭해서 세부 메일 탭 생성까지 현재 상황
+    /*
+    TODO
+    */
+
+    let navigation_back = page_.waitForNavigation();
+    await page_.$('#rcmbtn107').then((result)=>{
+        result.click();
+    })
+    await navigation_back;
 
 }
 /**
@@ -120,7 +155,8 @@ const jsonFileWrite = (rawdata,data)=>{
  *  @param  browser browser that created in mainRunner
  * 
  *  <pre>
- *   
+ *    i can keep my center
+ * 
  *  </pre>
  *  -----------------------------------------------------------------------------------------------------------------------
  */
@@ -477,9 +513,8 @@ const handle_newIssue = async(imsPage)=>{
  *  
  *  -----------------------------------------------------------------------------------------------------------------------
  */
-
-const classifyMail = async(content,browser)=>{
-
+const classifyMail = async(content,browser)=> {
+    
     console.log(chalk.magentaBright(`[check_mailInfo] : ${content}`));
 
     let origin_ = content;

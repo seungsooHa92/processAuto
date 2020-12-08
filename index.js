@@ -71,8 +71,7 @@ let isEnter = false
  *  @description
  *  <pre>
  *      i. unRead Mail 에 대한 Notification 클릭시 
- *      ii. 해당 메일 내용과 issue 번호를 가진 issue를 IMS에 접속하여 (page객체 생성) 이슈내용 및 히스트로 확인함
- *  	
+ *      ii. 해당 메일 내용과 issue 번호를 가진 issue를 IMS에 접속하여 (page객체 생성) 이슈내용 및 history 확인함
  *  </pre>
  *  
  *  -----------------------------------------------------------------------------------------------------------------------
@@ -83,15 +82,15 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
     console.log(chalk.magentaBright(`<< check_mailInfo >> : ${content}`));
     console.log(chalk.magentaBright(`<< check_mailID Info >> : ${mailId}`));
     console.log(chalk.yellowBright('@@@@@@@@@@@   Mail Info   @@@@@@@@@@@'));
+
     let origin_ = content;
     let splitted = origin_.split(' ');
     let class_flag = splitted[0]; // IMS
     let class_flag2 = splitted[1]; // No.123456
     let _No = class_flag2.split('.')[0]; // No ---
-
     let _status = splitted[2];
-    /*
 
+    /*
     Registered -> New Issue Register;
     Action Registered -> Action is Submitted;
     Action Modified 
@@ -100,24 +99,20 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
     let _imsNum = class_flag2.split('.')[1];  // Issue Number
     let imsTargetURL = `https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=${_imsNum}`;
     switch(class_flag){
-
         case "[IMS]":
             console.log('[IMS] mail received ...');
             if(_No == "No"){
                 // Issue 관련된 메일일때 imsPage 생성후 처리 
                 const imsPage = await browser.newPage();
-
                 await page.setViewport({//set Page viewPort
                     width : 1920,               
                     height : 1080,               
                 });
                 if(_status === 'Registered'){// New Issue Registered
                     console.log('New Issue Registered!!');
-
                     /*
                     TODO 
                     ******* New Issue Registered
-
                     1. check whether it is first connection to IMS if(!isEnter){} else{}
                     then
                     2. handle_newIssue
@@ -127,12 +122,12 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                         await first_execute(imsPage,_imsNum);
                         // TODO
                         // imsTargetURL 처리 
-                        await handle_newIssue(imsPage,imsTargetURL); 
+                        //await handle_newIssue(imsPage,imsTargetURL); 
                     }
                     else{
                         console.log(chalk.greenBright('***** [New Issue Registered] After first Noti Click ******'));
                         await after_execute(imsPage,_imsNum);
-                        await handle_newIssue(imsPage,imsTargetURL); 
+                        //await handle_newIssue(imsPage,imsTargetURL); 
                     }
                 }
                 else{
@@ -151,7 +146,7 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                         // options을 못가져 오는구나,,,,,
                         await imsPage.close();
                         await read_UnreadMail(page,mailId);
-
+                    
                     }
                     else{
                         console.log(chalk.greenBright('***** After first Noti Click ******'));
@@ -165,8 +160,8 @@ const check_mailInfo = async(page=mailPage,mailId,content,browser)=>{
                         // focus mailPage 
                         console.log(page);
                         await imsPage.close();
-                
                         await read_UnreadMail(page,mailId);
+                        
                     }
                 }
             } 
