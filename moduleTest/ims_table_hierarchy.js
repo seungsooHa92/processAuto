@@ -5,7 +5,7 @@ createCustomNoti,
 classifyMail,
 first_execute,
 after_execute
-} = require('./common_function');
+} = require('../common_function');
 const chalk = require('chalk');
 const path = require('path');
 const { cpuUsage } = require('process');
@@ -35,7 +35,7 @@ const main = async()=>{
         let rightContent = document.querySelector('body > div:nth-child(2) > table > tbody > tr > td:nth-child(2) > table > tbody > tr:nth-child(2)').childNodes
 
         let rightContent_children = rightContent[1].children;
-       
+        
         let arr = Array.from(rightContent_children)
         const heightObj = {
             data:[],    

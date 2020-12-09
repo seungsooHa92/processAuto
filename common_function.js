@@ -6,7 +6,7 @@ const fs = require('fs');
 const puppeteer = require('puppeteer');
 const {accountInfo} = require('./credential_data');
 const commander = require('commander');
-const common_dataset = require('./common_dataset');
+
 
 /**
  * 

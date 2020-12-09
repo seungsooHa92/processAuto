@@ -29,10 +29,6 @@ Date_formatting
 } = require('./default_setting');
 const {accountInfo} = require('./credential_data');
 
-const {
-emptyFlag,
-//completeNoti
-} = require('./common_dataset');
 
 const {
 

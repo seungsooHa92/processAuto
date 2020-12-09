@@ -1,4 +1,4 @@
-const {accountInfo} = require('./credential_data');
+const {accountInfo} = require('../credential_data');
 const puppeteer = require('puppeteer');
 const inquirer = require('inquirer');
 
