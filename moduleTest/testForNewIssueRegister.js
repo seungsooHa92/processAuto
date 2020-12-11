@@ -105,19 +105,14 @@ const _issueRegister = async()=>{
     // 1. focus title Area
     await registerPage.click('#titleId',(result)=>{console.log('titleId clicked')})
     await registerPage.type('#titleId',title,{delay:20});
-
     await registerPage.waitForTimeout('1000');
-    
     // Module ComboBox (dropDown )
-    
     /*
     #important
     handle_alert -> callback
     callback must be precedent!
     */
-
     await handle_alert(registerPage);
-    
     /* 
     the reson Why handle navigation
     when change the issue module
@@ -126,11 +121,9 @@ const _issueRegister = async()=>{
     
     (maybe same situation at SPA, this problem is out of consideration ..? )
     */ 
-
     const navigation3 = registerPage.waitForNavigation();
     await registerPage.select('#mainModuleCode','048');
     await navigation3;
-
     await registerPage.waitForTimeout('600');
 
     /*
@@ -147,23 +140,18 @@ const _issueRegister = async()=>{
         
         keep in mind 
         when operate page.evaluate() 
-
-        Main Js process(Node.js) run node env.
-
-        but output? result shown in target browser not local terminal!
-        
         */
         const _sleep = async()=>{
             return new Promise((resolve)=>{
                 setTimeout(resolve,200);
             })
         }
-     
+        
         for(let y = 0 ; y < 15 ; y++){
-          
+            
             window.scrollTo(0,150*y);
             if(y == 5){
-               
+                
                 let _iframe = document.querySelector('[id^="xfeDesignFrame_"]');
                 _iframe.contentDocument.body.innerText = 'issue detail';
 
@@ -191,7 +179,7 @@ const _issueRegister = async()=>{
         let _go = (answers.go === 'true');
         console.log(_go);
         if(_go){
-           
+            
             registerPage.$('#but_save').then((result)=>{
                 result.click();
             });

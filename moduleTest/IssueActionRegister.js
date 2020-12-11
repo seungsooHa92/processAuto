@@ -29,30 +29,58 @@ const runner = async(issueNum,actionContent)=>{
     })
 
     await navigation1;
-    await issue_page.waitForTimeout('600');
 
     // after login
 
-    let url = `https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=${issueNum}&menuCode=issue_search`
+    const navigation2 = issue_page.waitForNavigation();
+    await issue_page.type('#topIssueId',issueNum,{delay:20});
 
-    await issue_page.goto(url);
+    //await page.type(String.fromCharCode(13));
+    await issue_page.keyboard.press('Enter');
+    await navigation2;
 
-    
+    // 미친놈아 여기다 navi를 왜 거냐 미친새끼;
+    //const navigation3 = issue_page.waitForNavigation();
+
     await issue_page.$('#actionRegImg').then((result)=>{
         result.click();
     })
 
-    await issue_page.evaluate(async(actionContent)=>{
+    //await navigation3;
 
+    /*
+    This is same way used at testForNewIssueRegister
+    but this didn't work
+
+    await issue_page.evaluate(()=>{
+
+        window.scrollTo(0,200);
         let _iframe = document.querySelector('[id^="xfeDesignFrame_"]');
-        _iframe.contentDocument.body.innerText = actionContent;
+        console.log('Check grab frame:',_iframe)
+        _iframe.contentDocument.body.innerText = 'actionContentdfasdf';
 
-    },actionContent);
+    });
+    */
 
+    /*
+    second way 도 블락,,,, 시....발.....
+    console.log('[Before page.evaluate]');
 
+    let getIFrameId = await issue_page.evaluate(async()=>{
+        let _iframe = document.querySelector('[id^="xfeDesignFrame_"]');
+        console.log(_iframe);
+        let id = _iframe.id;
+        return Promise.resolve(id);
+    })
 
+    _iframeId = await getIFrameId;
 
+    console.log(_iframeId);
+
+    await issue_page.type(`#${_iframeId}`,'asdfasdfasdfasdf',{delay:20});
+
+    */
 }
 
 
-runner(246790,'asdfkljasdlfjiouwer');
+runner('246790','asdfkljasdlfjiouwer');
