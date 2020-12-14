@@ -47,11 +47,11 @@ const runner = async(issueNum,actionContent)=>{
     })
 
     //await navigation3;
+    //This is same way used at testForNewIssueRegister
+    //but this didn't work
+
 
     /*
-    This is same way used at testForNewIssueRegister
-    but this didn't work
-
     await issue_page.evaluate(()=>{
 
         window.scrollTo(0,200);
@@ -62,23 +62,30 @@ const runner = async(issueNum,actionContent)=>{
     });
     */
 
-    /*
-    second way 도 블락,,,, 시....발.....
-    console.log('[Before page.evaluate]');
+    
+    //second way 도 블락,,,, 시....발.....
 
+    /*
+    console.log('[Before page.evaluate]');
     let getIFrameId = await issue_page.evaluate(async()=>{
         let _iframe = document.querySelector('[id^="xfeDesignFrame_"]');
         console.log(_iframe);
         let id = _iframe.id;
         return Promise.resolve(id);
     })
-
     _iframeId = await getIFrameId;
-
     console.log(_iframeId);
-
     await issue_page.type(`#${_iframeId}`,'asdfasdfasdfasdf',{delay:20});
+    
+    */
 
+    /*
+    third way 너마저....ㅠ
+    
+    const frameHandle = await issue_page.$("iframe[id='xfeDesignFrame_']");
+    console.log(frameHandle);
+    const frame = await frameHandle.contentFrame();
+    await frame.type('input','test')
     */
 }
 
