@@ -1,0 +1,15 @@
+TODO
+
+
+1. 한가지 이슈에 
+    Action Registered
+    Action Modified
+    Status Changed
+등 여러 알람이 중복적으로 온다면 가장 최신?의 하나의 알람만 
+받도록 개선 
+
+2. new Issue Register 구현체 
+
+3. moduleTest > IssueActionRegister save Button click하는 동작필요
+
+4. issue들 해결 해야함 ,,, ㅠ

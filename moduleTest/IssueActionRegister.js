@@ -36,29 +36,22 @@ const runner = async(issueNum,actionContent)=>{
     await issue_page.keyboard.press('Enter');
     await navigation2;
     //const navigation3 = issue_page.waitForNavigation();
-
     await issue_page.$('#actionRegImg').then((result)=>{
         result.click();
     })
     //await navigation3; navigation 처리 해봤자 navigation이 일어나지 않기때문에 code가 block 됨
     //This is same way used at testForNewIssueRegister
     //but this didn't work
-
-
     /*
     await issue_page.evaluate(()=>{
-
         window.scrollTo(0,200);
         let _iframe = document.querySelector('[id^="xfeDesignFrame_"]');
         console.log('Check grab frame:',_iframe)
         _iframe.contentDocument.body.innerText = 'actionContentdfasdf';
-
     });
     */
-
     
     //second way 도 블락,,,, 시....발.....
-
     /*
     console.log('[Before page.evaluate]');
     let getIFrameId = await issue_page.evaluate(async()=>{
@@ -72,7 +65,6 @@ const runner = async(issueNum,actionContent)=>{
     await issue_page.type(`#${_iframeId}`,'asdfasdfasdfasdf',{delay:20});
     
     */
-
     /*
     third way 너마저....ㅠ
     const frameHandle = await issue_page.$("iframe[id='xfeDesignFrame_']");
@@ -80,23 +72,16 @@ const runner = async(issueNum,actionContent)=>{
     const frame = await frameHandle.contentFrame();
     await frame.type('input','test')
     */
-
-
     // timeout이 필요하네...?
     /*
     iframe Rendering is => async
-
     catch by userdefined CallBack
-    
     */
-   /*
+    /*
     await issue_page.waitForTimeout(1000);
-
     await issue_page.evaluate(async()=>{
 
         console.log('Browser Enter ');
-
-
         console.log(document.getElementsByClassName('xfeDesignFrame'));
         
         
@@ -107,13 +92,11 @@ const runner = async(issueNum,actionContent)=>{
     
     /*
     await issue_page.waitForTimeout(1000);
-
     await issue_page.$('.xfeDesignFrame')
         .then((result)=>{
             console.log(result)
         })
     */
-
     // Last Solution
     /*
         simple way -> use `page.waitForTimeout`
@@ -121,9 +104,7 @@ const runner = async(issueNum,actionContent)=>{
         using user defined -> _explicit_wait
     */
     let iframe_ = await _explicit_wait(issue_page,'.xfeDesignFrame',5,500);
-
     //console.log(iframe_);
-
     if(iframe_){
 
         await issue_page.evaluate(async(actionContent)=>{
@@ -131,11 +112,10 @@ const runner = async(issueNum,actionContent)=>{
             console.log('Browser Enter ');
             let actionIframe = document.getElementsByClassName('xfeDesignFrame');
             console.log('Browser Exit');
-
             actionIframe[0].contentDocument.body.innerText = actionContent;
 
         },actionContent)
     }
-    
 }
+
 runner('246790','asdfkljasdlfjiouwer');
