@@ -288,22 +288,19 @@ const first_execute = async(page,imsNum)=>{
     */
     await navigation1;
     await page.waitForTimeout('600');
-
     await page.type('#topIssueId',imsNum,{delay:20});
-
     const navigation2 = page.waitForNavigation();
     //await page.type(String.fromCharCode(13));
     await page.keyboard.press('Enter');
     await navigation2;
-
     //await page.goto(`https://ims.tmaxsoft.com/tody/ims/issue/issueView.do?issueId=${imsNum}&menuCode=issue_list`);
     /*
     await page.waitForNavigation({
-         waitUntil: 'networkidle0',
+        waitUntil: 'networkidle0',
     });
     */
-
 }
+
 /**
  * 
  *  ----------------------------------------------------------------------------------------------------------------------
@@ -383,8 +380,6 @@ const traverseIMSPage = async(imsPage,imsTargetURL,browser)=>{
         },
         responseType: 'json'
     });
-
-    
 }
 /**
  * 
@@ -399,9 +394,9 @@ const traverseIMSPage = async(imsPage,imsTargetURL,browser)=>{
  *      2. Enter that Ims Page
  *      3. screenshot page with scrolling
  *  </pre>
- *  
  *  -----------------------------------------------------------------------------------------------------------------------
  */
+
 const page_scrapper = async(page,url)=>{
 
     let get_issueInfoTable = await page.evaluate(()=>{
@@ -551,6 +546,87 @@ const classifyMail = async(content,browser)=> {
     cnt++
 }
 
+/**
+ *  
+ *  ----------------------------------------------------------------------------------------------------------------------
+ * 
+ *  @function getSafetyElement
+ *
+ *  @param page:  puppeteer page object
+ *  @param selector: target selector
+ *  @param time
+ * 
+ *  @description
+ *  <pre>
+ *      to find element 
+ *  </pre>
+ *  
+ *  -----------------------------------------------------------------------------------------------------------------------
+ */
+const getSafetyElement = async(page,selector,time)=>{
+
+    try{
+        let eleObj = await page.$(selector);
+        if(!eleObj){
+            throw new Error('Element is NULL');
+        }
+        else{
+            console.log(`[${selector} is Success]`);
+        }
+        return eleObj;
+    }
+    catch(e){
+        console.log(`Find Element Error is Selector : ${selector}`);
+        console.log(`${time} after... (retry)`);
+        await page.waitForTimeout(time);
+        return false;   
+    }
+}
+
+/**
+ *  
+ *  ----------------------------------------------------------------------------------------------------------------------
+ * 
+ *  @function _explicit_wait
+ *
+ *  @param page
+ *  @param selector
+ *  @param count 
+ *  @param time
+ * 
+ *  @description
+ *  <pre>
+ *       
+ *  </pre>
+ *  
+ *  -----------------------------------------------------------------------------------------------------------------------
+ */
+
+const _explicit_wait = async(page,selector,count,time)=>{
+
+    console.time(`[findtopElement] finding <${selector}> is excuted ->`);
+
+    let isSuccess = false;
+    let _time = time || 2000;
+    let _cnt = count || 3;
+    let isCondition = 0;
+
+    if(typeof selector === undefined && typeof selector === "undefined"){
+        return isSuccess;
+    }
+    while(!isSuccess &&(isCondition < _cnt)){
+        isSuccess = await getSafetyElement(page,selector,_time);
+        if(isSuccess !== false){
+            isCondition = _cnt+1;
+        }
+        ++isCondition;
+    }
+    console.timeEnd(`[findtopElement] finding <${selector}> is excuted ->`);
+
+    return isSuccess;
+}
+
+
 module.exports = {
     createCustomNoti,
     first_execute,
@@ -560,5 +636,6 @@ module.exports = {
     imageFileWrite,
     traverseIMSPage,
     handle_newIssue,
-    read_UnreadMail
+    read_UnreadMail,
+    _explicit_wait
 }

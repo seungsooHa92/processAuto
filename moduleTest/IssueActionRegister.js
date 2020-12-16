@@ -1,6 +1,7 @@
 const {accountInfo} = require('../credential_data');
 const puppeteer = require('puppeteer');
 const inquirer = require('inquirer');
+const {_explicit_wait}= require('../common_function')
 
 
 const runner = async(issueNum,actionContent)=>{
@@ -27,26 +28,19 @@ const runner = async(issueNum,actionContent)=>{
         document.querySelector(`body > form > table > tbody > tr > td > table > tbody > tr:nth-child(2) > td:nth-child(1) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(3) > input[type=image]`)
         .click();
     })
-
     await navigation1;
-
     // after login
-
     const navigation2 = issue_page.waitForNavigation();
     await issue_page.type('#topIssueId',issueNum,{delay:20});
-
     //await page.type(String.fromCharCode(13));
     await issue_page.keyboard.press('Enter');
     await navigation2;
-
-    // 미친놈아 여기다 navi를 왜 거냐 미친새끼;
     //const navigation3 = issue_page.waitForNavigation();
 
     await issue_page.$('#actionRegImg').then((result)=>{
         result.click();
     })
-
-    //await navigation3;
+    //await navigation3; navigation 처리 해봤자 navigation이 일어나지 않기때문에 code가 block 됨
     //This is same way used at testForNewIssueRegister
     //but this didn't work
 
@@ -81,13 +75,67 @@ const runner = async(issueNum,actionContent)=>{
 
     /*
     third way 너마저....ㅠ
-    
     const frameHandle = await issue_page.$("iframe[id='xfeDesignFrame_']");
     console.log(frameHandle);
     const frame = await frameHandle.contentFrame();
     await frame.type('input','test')
     */
+
+
+    // timeout이 필요하네...?
+    /*
+    iframe Rendering is => async
+
+    catch by userdefined CallBack
+    
+    */
+   /*
+    await issue_page.waitForTimeout(1000);
+
+    await issue_page.evaluate(async()=>{
+
+        console.log('Browser Enter ');
+
+
+        console.log(document.getElementsByClassName('xfeDesignFrame'));
+        
+        
+        console.log('Browser Exit');
+    })
+    */
+    // timeout 무조건 필요하네 ,,,,
+    
+    /*
+    await issue_page.waitForTimeout(1000);
+
+    await issue_page.$('.xfeDesignFrame')
+        .then((result)=>{
+            console.log(result)
+        })
+    */
+
+    // Last Solution
+    /*
+        simple way -> use `page.waitForTimeout`
+        or
+        using user defined -> _explicit_wait
+    */
+    let iframe_ = await _explicit_wait(issue_page,'.xfeDesignFrame',5,500);
+
+    //console.log(iframe_);
+
+    if(iframe_){
+
+        await issue_page.evaluate(async(actionContent)=>{
+
+            console.log('Browser Enter ');
+            let actionIframe = document.getElementsByClassName('xfeDesignFrame');
+            console.log('Browser Exit');
+
+            actionIframe[0].contentDocument.body.innerText = actionContent;
+
+        },actionContent)
+    }
+    
 }
-
-
 runner('246790','asdfkljasdlfjiouwer');
