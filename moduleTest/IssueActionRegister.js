@@ -3,7 +3,12 @@ const puppeteer = require('puppeteer');
 const inquirer = require('inquirer');
 const {_explicit_wait}= require('../common_function')
 
+const handle_alert = async(page)=>{
 
+    page.on('dialog',async (dialog) => {
+        await dialog.accept();
+    }); 
+}
 const runner = async(issueNum,actionContent)=>{
 
     const browser = await puppeteer.launch({
@@ -27,7 +32,8 @@ const runner = async(issueNum,actionContent)=>{
     await issue_page.evaluate(()=>{
         document.querySelector(`body > form > table > tbody > tr > td > table > tbody > tr:nth-child(2) > td:nth-child(1) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td:nth-child(3) > input[type=image]`)
         .click();
-    })
+    });
+
     await navigation1;
     // after login
     const navigation2 = issue_page.waitForNavigation();
@@ -38,7 +44,8 @@ const runner = async(issueNum,actionContent)=>{
     //const navigation3 = issue_page.waitForNavigation();
     await issue_page.$('#actionRegImg').then((result)=>{
         result.click();
-    })
+    });
+
     //await navigation3; navigation 처리 해봤자 navigation이 일어나지 않기때문에 code가 block 됨
     //This is same way used at testForNewIssueRegister
     //but this didn't work
@@ -103,8 +110,14 @@ const runner = async(issueNum,actionContent)=>{
         or
         using user defined -> _explicit_wait
     */
+    await handle_alert(issue_page);
+
     let iframe_ = await _explicit_wait(issue_page,'.xfeDesignFrame',5,500);
     //console.log(iframe_);
+
+
+
+    // when find a iframe 객체 
     if(iframe_){
 
         await issue_page.evaluate(async(actionContent)=>{
@@ -116,6 +129,33 @@ const runner = async(issueNum,actionContent)=>{
 
         },actionContent)
     }
+
+    let saveButton_ = `#actionTable > tbody > tr > td > table > tbody > tr:nth-child(18) > td > img`;
+
+    await issue_page.$(saveButton_).then((result)=>{
+        result.click();
+    })
+    // alert 
+
 }
 
-runner('246790','asdfkljasdlfjiouwer');
+// issue 번호 , action 내용 
+inquirer
+    .prompt([
+        {
+		    type: 'input',
+		    name: 'issueNum',
+		    message: 'What is Issue Number that you want register new Action ?',
+		    
+        },
+        {
+            type: 'input',
+		    name: 'actionContent',
+		    message: 'write your new action Content',
+		    
+        }
+    ])
+    .then((answers) => {
+	    
+        runner(answers.issueNum,answers.actionContent);
+    })

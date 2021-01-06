@@ -29,9 +29,7 @@ Date_formatting
 } = require('./default_setting');
 const {accountInfo} = require('./credential_data');
 
-
 const {
-
 createCustomNoti,
 classifyMail,
 first_execute,
@@ -41,13 +39,14 @@ jsonFileWrite,
 imageFileWrite,
 traverseIMSPage,
 handle_newIssue,
-read_UnreadMail
+read_UnreadMail,
+_sleep
 } = require('./common_function');
 
 const UNREAD = "읽지 않음 ";
 const SEND = "전달 됨 ";
 let cnt = 0;
-const dev_MAIL_POLLINGTIME = 90*1000; 
+const dev_MAIL_POLLINGTIME = 200*1000; 
 const MAIL_POLLINGTIME = 300*1000;
 
 
@@ -216,6 +215,7 @@ const mailMonitoring = async (page,browser) =>{
         })
         return Promise.resolve(mail_tr_id);  
     })
+
     console.log(chalk.yellowBright(`--------------------------------------------------  Current Total Mail List  --------------------------------------------------`));
     console.log(readList);
     console.log(chalk.yellowBright(`--------------------------------------------------  Current Total Mail List  --------------------------------------------------`));
@@ -246,6 +246,7 @@ const mailMonitoring = async (page,browser) =>{
         // make complete Check Noti
 
         createCustomNoti(completeOption, true, completeNotiClickFn);
+        
     }
     for(let i = 0 ; i < unReadList.length ; i ++){
         /*
@@ -256,7 +257,7 @@ const mailMonitoring = async (page,browser) =>{
         
         **
         2.https://github.com/mikaelbr/node-notifier/issues/291#issuecomment-555741924
-            -> node-notifer rollback 함
+            -> node-notifer roll back 함
         */
         
         let unReadNotiRandomId = Math.round(Math.random() * 0xffffff).toString(16); // Notification 별로 unique 한 id값 부여 
@@ -280,6 +281,7 @@ const mailMonitoring = async (page,browser) =>{
                     go to Ims Page
                 */
                 await check_mailInfo(page, options.messageId, options.message , browser);
+                await _sleep(2000);
 
             }
             /*
@@ -287,6 +289,7 @@ const mailMonitoring = async (page,browser) =>{
                 every alarm -> new Noti (not duplicated)
             */
             createCustomNoti(unReadOption, true, unReadNotiClickFn);
+
             
         }     
         
@@ -363,6 +366,9 @@ const mainRunner = async(_headless)=>{
         await mailPage.close();    
     }   
 }
+
+
+
 /**
  *  -----------------------------------------------------
  *  @description

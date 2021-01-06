@@ -6,6 +6,32 @@ const fs = require('fs');
 const puppeteer = require('puppeteer');
 const {accountInfo} = require('./credential_data');
 const commander = require('commander');
+const { resolve } = require('path');
+
+
+
+/**
+ * 
+ *  ----------------------------------------------------------------------------------------------------------------------
+ * 
+ *  @function _sleep
+ *
+ *  @param _time : sleep time 
+ *  @description
+ *  <pre>
+ *      in async function 
+ *      stop and sleep during given _time
+ *  </pre>
+ *  
+ *  -----------------------------------------------------------------------------------------------------------------------
+ */
+
+const _sleep = async(_time)=>{
+    return new Promise((resolve)=>{
+        setTimeout((resolve)=>{return resolve},_time);
+    })
+}
+
 
 
 /**
@@ -98,12 +124,12 @@ const read_UnreadMail = async(page,id)=>{
     await page_.mouse.down({button:'left'});
     await page_.waitForTimeout(50);
     await page_.mouse.up({button:'left'});
- 
+
     await page_.waitForTimeout(500);
 
     // 2020.12.08 안읽은 메일 더블클릭해서 세부 메일 탭 생성까지 현재 상황
     /*
-    TODO
+    
     */
 
     // back Button Click page back to main mailList url
@@ -259,7 +285,7 @@ const createCustomNoti = (options,isClick,clickFn)=>{
  */
 
 const first_execute = async(page,imsNum)=>{
-  
+    
     /*
     puppeteer에서 input태그 처리하는 방법 
     reference : https://github.com/puppeteer/puppeteer/issues/441
@@ -420,13 +446,17 @@ const page_scrapper = async(page,url)=>{
             let image_array = [];
 
             // action 에 포함되어있는 gif, png 파일을 array 형태로 따로 저장
-            Array.from(action.children).forEach((ele_)=>{
-                if(ele_.firstChild.currentSrc){
-                    image_array.push(ele_.firstChild.currentSrc);
-                }
-                actionObj._img = image_array;
-            })            
-            actions_Info.push(actionObj);
+            // TODO issue point
+            if(action.children){
+                Array.from(action.children).forEach((ele_)=>{
+                    if(ele_.firstChild.currentSrc){
+                        image_array.push(ele_.firstChild.currentSrc);
+                    }
+                    actionObj._img = image_array;
+                })            
+                actions_Info.push(actionObj);
+            }
+            
         })
         document.querySelectorAll('[id^="action_"]').forEach((action_info)=>{
             actionHsitoryInfo.push(action_info.innerText);
@@ -637,5 +667,6 @@ module.exports = {
     traverseIMSPage,
     handle_newIssue,
     read_UnreadMail,
-    _explicit_wait
+    _explicit_wait,
+    _sleep
 }
