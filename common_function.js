@@ -32,8 +32,6 @@ const _sleep = async(_time)=>{
     })
 }
 
-
-
 /**
  * 
  *  ----------------------------------------------------------------------------------------------------------------------
@@ -438,26 +436,36 @@ const page_scrapper = async(page,url)=>{
         innerText-> innerHTML changed
         
         */
-        document.querySelectorAll('[id^="commDescTR_"]').forEach((action)=>{
 
-            let actionObj = new Object();
-            actionObj._id = action.id;
-            actionObj._text = action.innerText;
-            let image_array = [];
+        let actionList = document.querySelectorAll('[id^="commDescTR_"]');
 
-            // action 에 포함되어있는 gif, png 파일을 array 형태로 따로 저장
-            // TODO issue point
-            if(action.children){
-                Array.from(action.children).forEach((ele_)=>{
-                    if(ele_.firstChild.currentSrc){
-                        image_array.push(ele_.firstChild.currentSrc);
-                    }
-                    actionObj._img = image_array;
-                })            
-                actions_Info.push(actionObj);
-            }
-            
-        })
+        if(actionList.length > 0 ){
+            document.querySelectorAll('[id^="commDescTR_"]').forEach((action)=>{
+
+                let actionObj = new Object();
+                actionObj._id = action.id;
+                actionObj._text = action.innerText;
+                let image_array = [];
+    
+                // action 에 포함되어있는 gif, png 파일을 array 형태로 따로 저장
+                // TODO issue point
+                if(action.children){
+                    Array.from(action.children).forEach((ele_)=>{
+                        if(ele_.firstChild.currentSrc){
+                            image_array.push(ele_.firstChild.currentSrc);
+                        }
+                        actionObj._img = image_array;
+                    })            
+                    actions_Info.push(actionObj);
+                }
+                
+            })
+        }
+        else{
+            console.log('Action is not registerd');
+        }
+
+        
         document.querySelectorAll('[id^="action_"]').forEach((action_info)=>{
             actionHsitoryInfo.push(action_info.innerText);
         })

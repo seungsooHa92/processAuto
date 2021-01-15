@@ -23,10 +23,12 @@ const path = require('path');
 const _ = require('lodash');
 const inquirer = require('inquirer');
 const got = require('got');
+
 const {
 start_prompt,
 Date_formatting
 } = require('./default_setting');
+
 const {accountInfo} = require('./credential_data');
 
 const {
@@ -40,13 +42,12 @@ imageFileWrite,
 traverseIMSPage,
 handle_newIssue,
 read_UnreadMail,
-_sleep
-} = require('./common_function');
+_sleep } = require('./common_function');
 
 const UNREAD = "읽지 않음 ";
 const SEND = "전달 됨 ";
 let cnt = 0;
-const dev_MAIL_POLLINGTIME = 200*1000; 
+const dev_MAIL_POLLINGTIME = 300*1000; 
 const MAIL_POLLINGTIME = 300*1000;
 
 
@@ -244,14 +245,12 @@ const mailMonitoring = async (page,browser) =>{
             console.log('메일 확인 완료 noti Click');
         }
         // make complete Check Noti
-
         createCustomNoti(completeOption, true, completeNotiClickFn);
         
     }
     for(let i = 0 ; i < unReadList.length ; i ++){
         /*
         package issue (notifier onClick do not wrork)
-
         1.https://stackoverflow.com/questions/62193525/how-can-i-listen-click-event-on-windows-notifications
             -> npm i node-powertoast => Windowws.winmd ->  (https://github.com/NodeRT/NodeRT/issues/65#issuecomment-303938757)
         
@@ -272,9 +271,7 @@ const mailMonitoring = async (page,browser) =>{
                 sound: true, // Only Notification Center or Windows Toasters
                 wait: false // Wait with callback, until user action is taken against notification, does not apply to Windows Toasters as they always wait or notify-send as it does not support the wait option
             }
-
             let unReadNotiClickFn = async (notifierObj,options,event)=>{
-
                 console.log(chalk.bgYellowBright('UnRead Mail Clicked '));
                 /* 
                     unRead Mail and it is IMS Mail 
@@ -282,14 +279,12 @@ const mailMonitoring = async (page,browser) =>{
                 */
                 await check_mailInfo(page, options.messageId, options.message , browser);
                 await _sleep(2000);
-
             }
             /*
                 20.11.05
                 every alarm -> new Noti (not duplicated)
             */
             createCustomNoti(unReadOption, true, unReadNotiClickFn);
-
             
         }     
         
@@ -297,9 +292,7 @@ const mailMonitoring = async (page,browser) =>{
             console.log('Forwarding 한 메일')
         }
     }
-
     console.timeEnd(`[mailMonitoring] executed         ....`);
-
 }
 /**
  * 
@@ -307,7 +300,6 @@ const mailMonitoring = async (page,browser) =>{
  * 
  *  @function mainRunner
  *  @param 
-
  *  @description
  *  <pre>
  *      i. browser -> puppeteer launch
@@ -322,11 +314,9 @@ const mainRunner = async(_headless)=>{
 
     // String to Bool
     let headlessMode = (_headless === 'true')
-
     const browser = await puppeteer.launch({
         headless: headlessMode, 
     });
-
     let i = 0 ;
     while(true){
         
@@ -335,7 +325,7 @@ const mainRunner = async(_headless)=>{
             ->
             client cannot control Session info
             build a loop which repaeat close & open the mailPage
-        
+
         */
         i++;
         const mailPage = await browser.newPage();
@@ -347,7 +337,6 @@ const mainRunner = async(_headless)=>{
             }    
         );
         await mailPage.goto('https://mail.tmax.co.kr/');
-
         if(i == 1){
             // first enter -> login 
             await mailPage.type('#rcmloginuser',accountInfo._id,{delay:20});
@@ -367,8 +356,6 @@ const mainRunner = async(_headless)=>{
     }   
 }
 
-
-
 /**
  *  -----------------------------------------------------
  *  @description
@@ -381,8 +368,7 @@ const mainRunner = async(_headless)=>{
  *  -----------------------------------------------------
  */
 inquirer
-    .prompt([
-        {
+    .prompt([{
 		    type: 'list',
 		    name: 'head',
 		    message: 'Work Process Automation Run! choose your Headless Mode [T/F] default is true',
