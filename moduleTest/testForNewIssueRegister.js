@@ -76,7 +76,7 @@ const _issueRegister = async()=>{
         .select();
     })
 
-    await registerPage.keyboard.type(accountInfo.__pw);
+    await registerPage.keyboard.type(accountInfo._pw);
 
     const navigation1 = registerPage.waitForNavigation();
     
@@ -190,10 +190,6 @@ const _issueRegister = async()=>{
 
         }
     })
-
-
-    
-
 
 }
 _issueRegister();

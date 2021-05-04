@@ -258,7 +258,6 @@ const mailMonitoring = async (page,browser) =>{
         2.https://github.com/mikaelbr/node-notifier/issues/291#issuecomment-555741924
             -> node-notifer roll back 함
         */
-        
         let unReadNotiRandomId = Math.round(Math.random() * 0xffffff).toString(16); // Notification 별로 unique 한 id값 부여 
         if(unReadList[i] == '읽지 않음 '){
             let unReadOption =  {

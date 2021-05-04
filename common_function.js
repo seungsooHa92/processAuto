@@ -297,7 +297,7 @@ const first_execute = async(page,imsNum)=>{
         .select();
     })
 
-    await page.keyboard.type(accountInfo.__pw);
+    await page.keyboard.type(accountInfo._pw);
 
     const navigation1 = page.waitForNavigation();
     
@@ -311,7 +311,7 @@ const first_execute = async(page,imsNum)=>{
     });
     */
     await navigation1;
-    await page.waitForTimeout('600');
+    await page.waitForTimeout('1000');
     await page.type('#topIssueId',imsNum,{delay:20});
     const navigation2 = page.waitForNavigation();
     //await page.type(String.fromCharCode(13));
@@ -398,7 +398,7 @@ const traverseIMSPage = async(imsPage,imsTargetURL,browser)=>{
             await imageFileWrite(ele._img,ele._id,_getIssueData.issueBasicInfo.IssueNumber,browser);
         }
     });
-    await got.post('http://192.168.17.36:5000/puppeteer_', {
+    await got.post('http://192.168.17.32:5000/puppeteer_', {
         json: {
             _getIssueData
         },
@@ -458,12 +458,13 @@ const page_scrapper = async(page,url)=>{
                     })            
                     actions_Info.push(actionObj);
                 }
+                else{
+                    console.log('Action is not registerd');
+                }
                 
             })
         }
-        else{
-            console.log('Action is not registerd');
-        }
+        
 
         
         document.querySelectorAll('[id^="action_"]').forEach((action_info)=>{

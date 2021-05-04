@@ -25,7 +25,7 @@ const runner = async(issueNum,actionContent)=>{
         .select();
     })
 
-    await issue_page.keyboard.type(accountInfo.__pw);
+    await issue_page.keyboard.type(accountInfo._pw);
 
     const navigation1 = issue_page.waitForNavigation();
     
@@ -58,7 +58,7 @@ const runner = async(issueNum,actionContent)=>{
     });
     */
     
-    //second way 도 블락,,,, 시....발.....
+    //second way 도 
     /*
     console.log('[Before page.evaluate]');
     let getIFrameId = await issue_page.evaluate(async()=>{
@@ -129,6 +129,8 @@ const runner = async(issueNum,actionContent)=>{
 
         },actionContent)
     }
+
+    
 
     let saveButton_ = `#actionTable > tbody > tr > td > table > tbody > tr:nth-child(18) > td > img`;
 
